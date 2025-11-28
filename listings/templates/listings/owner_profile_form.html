@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile - Heimly{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="bg-white rounded-xl shadow-lg p-8">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">
+                <i class="fas fa-user-circle text-indigo-600 mr-3"></i>Update Profile
+            </h1>
+            <p class="text-gray-600">Complete your profile information and identity verification</p>
+        </div>
+        
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="space-y-8">
+                <!-- Contact Information & Verification -->
+                <div class="border-b border-gray-200 pb-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                        <i class="fas fa-phone text-indigo-600 mr-2"></i>Contact Information
+                    </h2>
+
+                    <!-- Email Verification Status -->
+                    <div class="mb-6 p-4 {% if owner_profile.email_verified_at %}bg-green-50 border-green-200{% else %}bg-yellow-50 border-yellow-200{% endif %} border rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                {% if owner_profile.email_verified_at %}
+                                <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                                <div>
+                                    <p class="font-medium text-green-900">Email Verified</p>
+                                    <p class="text-sm text-green-700">{{ user.email }}</p>
+                                    <p class="text-xs text-green-600 mt-1">Verified on {{ owner_profile.email_verified_at|date:"M d, Y" }}</p>
+                                </div>
+                                {% else %}
+                                <i class="fas fa-exclamation-triangle text-yellow-600 text-xl"></i>
+                                <div>
+                                    <p class="font-medium text-yellow-900">Email Not Verified</p>
+                                    <p class="text-sm text-yellow-700">{{ user.email }}</p>
+                                    <p class="text-xs text-yellow-600 mt-1">Verify your email to submit listings</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% if not owner_profile.email_verified_at %}
+                            <a href="{% url 'listings:request_email_verification' %}" class="inline-flex items-center px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 font-medium text-sm transition-colors">
+                                <i class="fas fa-envelope mr-2"></i>Verify Email
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Phone Verification Status -->
+                    <div class="mb-6 p-4 {% if owner_profile.phone_verified_at %}bg-green-50 border-green-200{% else %}bg-gray-50 border-gray-200{% endif %} border rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                {% if owner_profile.phone_verified_at %}
+                                <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                                <div>
+                                    <p class="font-medium text-green-900">Phone Verified</p>
+                                    <p class="text-sm text-green-700">{{ owner_profile.phone_number }}</p>
+                                    <p class="text-xs text-green-600 mt-1">Verified on {{ owner_profile.phone_verified_at|date:"M d, Y" }}</p>
+                                </div>
+                                {% else %}
+                                <i class="fas fa-clock text-gray-600 text-xl"></i>
+                                <div>
+                                    <p class="font-medium text-gray-900">Phone Verification</p>
+                                    <p class="text-sm text-gray-700">{% if owner_profile.phone_number %}{{ owner_profile.phone_number }}{% else %}No phone number provided{% endif %}</p>
+                                    <p class="text-xs text-gray-600 mt-1">Admin will verify manually</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {% for field in form %}
+                        {% if field.name == 'phone_number' or field.name == 'whatsapp_number' or field.name == 'preferred_contact' %}
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ field.errors }}</p>
+                            {% endif %}
+                            {% if field.help_text %}
+                            <p class="text-gray-500 text-xs mt-1">{{ field.help_text }}</p>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Identity Verification -->
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                        <i class="fas fa-id-card text-indigo-600 mr-2"></i>Identity Verification
+                    </h2>
+                    
+                    <!-- Current Upload Status -->
+                    {% if owner_profile.id_document %}
+                    <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                                <div>
+                                    <p class="font-medium text-green-900">ID Document Uploaded</p>
+                                    <p class="text-sm text-green-700">File: {{ owner_profile.id_document.name|slice:"10:" }}</p>
+                                    <p class="text-xs text-green-600 mt-1">Uploaded on {{ owner_profile.updated_at|date:"M d, Y" }}</p>
+                                </div>
+                            </div>
+                            <a href="{{ owner_profile.id_document.url }}" target="_blank" class="text-green-600 hover:text-green-700 font-medium">
+                                <i class="fas fa-external-link-alt mr-1"></i>View Document
+                            </a>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <div class="flex items-center space-x-3">
+                            <i class="fas fa-exclamation-triangle text-yellow-600"></i>
+                            <p class="text-yellow-900">No ID document uploaded yet. Please upload your government ID below.</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {% for field in form %}
+                        {% if field.name != 'phone_number' and field.name != 'whatsapp_number' and field.name != 'preferred_contact' %}
+                        <div {% if field.name == 'id_document' %}class="md:col-span-2"{% endif %}>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                {{ field.label }}
+                                {% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
+                            </label>
+                            {% if field.name == 'id_document' %}
+                            <div class="space-y-2">
+                                {{ field }}
+                                {% if owner_profile.id_document %}
+                                <p class="text-sm text-gray-600">
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    Selecting a new file will replace the existing document.
+                                </p>
+                                {% endif %}
+                            </div>
+                            {% else %}
+                            {{ field }}
+                            {% endif %}
+                            {% if field.errors %}
+                            <p class="text-red-600 text-sm mt-1">{{ field.errors }}</p>
+                            {% endif %}
+                            {% if field.help_text %}
+                            <p class="text-gray-500 text-xs mt-1">{{ field.help_text }}</p>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Verification Status Info -->
+                    <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div class="flex items-start space-x-3">
+                            <i class="fas fa-info-circle text-blue-600 mt-0.5"></i>
+                            <div>
+                                <p class="font-medium text-blue-900 mb-1">Current Verification Status</p>
+                                <p class="text-sm text-blue-800">
+                                    Status: <span class="font-semibold">{{ owner_profile.get_identity_status_display }}</span>
+                                    {% if owner_profile.identity_status == 'pending_review' %}
+                                    <br>Your profile is being reviewed. We'll notify you once it's approved.
+                                    {% elif owner_profile.identity_status == 'approved' %}
+                                    <br>Your identity has been verified! You can now submit listings for review.
+                                    {% elif owner_profile.identity_status == 'rejected' %}
+                                    <br>{% if owner_profile.identity_notes %}{{ owner_profile.identity_notes }}{% else %}Please review and resubmit your documents.{% endif %}
+                                    {% else %}
+                                    <br>Complete all ID information above and upload your document to submit for review.
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-8 flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
+                <a href="{% url 'listings:dashboard' %}" class="px-6 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium">
+                    Cancel
+                </a>
+                <button type="submit" class="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 shadow-md transition-all font-medium">
+                    <i class="fas fa-save mr-2"></i>Save Profile
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,263 @@
+{% extends 'base.html' %}
+
+{% block title %}Staff Review Queue - Heimly{% endblock %}
+
+{% block content %}
+<div>
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex justify-between items-center mb-4">
+            <div>
+                <h1 class="text-4xl font-bold text-gray-900 mb-2">
+                    <i class="fas fa-tasks text-indigo-600 mr-3"></i>{% if view_all %}All Listings{% else %}Review Queue{% endif %}
+                </h1>
+                <p class="text-gray-600">{% if view_all %}View and manage all property listings{% else %}Review and approve property listings submitted by owners{% endif %}</p>
+            </div>
+            <div class="flex items-center space-x-4">
+                {% if view_all %}
+                <a href="{% url 'listings:review_queue' %}" class="px-4 py-2 bg-yellow-100 text-yellow-800 rounded-lg font-semibold hover:bg-yellow-200 transition-colors">
+                    <i class="fas fa-clipboard-list mr-2"></i>Show Pending Only ({{ counts.pending_total }})
+                </a>
+                {% else %}
+                <span class="px-4 py-2 bg-blue-100 text-blue-800 rounded-lg font-semibold">
+                    <i class="fas fa-clipboard-list mr-2"></i>{{ counts.pending_total }} Pending
+                </span>
+                <a href="?view=all" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors">
+                    <i class="fas fa-list mr-2"></i>View All ({{ counts.all_total }})
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    {% if view_all %}
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+        <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-lg p-6 border border-blue-200">
+            <div class="flex items-center justify-between mb-4">
+                <div class="bg-blue-500 rounded-lg p-3">
+                    <i class="fas fa-search text-white text-xl"></i>
+                </div>
+            </div>
+            <h3 class="text-sm font-medium text-gray-600 mb-1">In Review</h3>
+            <p class="text-3xl font-bold text-gray-900">{{ counts.in_review }}</p>
+        </div>
+        <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl shadow-lg p-6 border border-yellow-200">
+            <div class="flex items-center justify-between mb-4">
+                <div class="bg-yellow-500 rounded-lg p-3">
+                    <i class="fas fa-clock text-white text-xl"></i>
+                </div>
+            </div>
+            <h3 class="text-sm font-medium text-gray-600 mb-1">Pending</h3>
+            <p class="text-3xl font-bold text-gray-900">{{ counts.pending_documents|add:counts.pending_identity }}</p>
+        </div>
+        <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl shadow-lg p-6 border border-green-200">
+            <div class="flex items-center justify-between mb-4">
+                <div class="bg-green-500 rounded-lg p-3">
+                    <i class="fas fa-check-circle text-white text-xl"></i>
+                </div>
+            </div>
+            <h3 class="text-sm font-medium text-gray-600 mb-1">Verified</h3>
+            <p class="text-3xl font-bold text-green-700">{{ counts.verified }}</p>
+        </div>
+        <div class="bg-gradient-to-br from-red-50 to-red-100 rounded-xl shadow-lg p-6 border border-red-200">
+            <div class="flex items-center justify-between mb-4">
+                <div class="bg-red-500 rounded-lg p-3">
+                    <i class="fas fa-times-circle text-white text-xl"></i>
+                </div>
+            </div>
+            <h3 class="text-sm font-medium text-gray-600 mb-1">Rejected</h3>
+            <p class="text-3xl font-bold text-gray-900">{{ counts.rejected }}</p>
+        </div>
+        <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl shadow-lg p-6 border border-gray-200">
+            <div class="flex items-center justify-between mb-4">
+                <div class="bg-gray-500 rounded-lg p-3">
+                    <i class="fas fa-file-alt text-white text-xl"></i>
+                </div>
+            </div>
+            <h3 class="text-sm font-medium text-gray-600 mb-1">Draft</h3>
+            <p class="text-3xl font-bold text-gray-900">{{ counts.draft }}</p>
+        </div>
+    </div>
+    {% else %}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-lg p-6 border border-blue-200">
+            <div class="flex items-center justify-between mb-4">
+                <div class="bg-blue-500 rounded-lg p-3">
+                    <i class="fas fa-search text-white text-xl"></i>
+                </div>
+            </div>
+            <h3 class="text-sm font-medium text-gray-600 mb-1">In Review</h3>
+            <p class="text-4xl font-bold text-gray-900">{{ counts.in_review }}</p>
+        </div>
+        <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl shadow-lg p-6 border border-yellow-200">
+            <div class="flex items-center justify-between mb-4">
+                <div class="bg-yellow-500 rounded-lg p-3">
+                    <i class="fas fa-file-alt text-white text-xl"></i>
+                </div>
+            </div>
+            <h3 class="text-sm font-medium text-gray-600 mb-1">Pending Documents</h3>
+            <p class="text-4xl font-bold text-gray-900">{{ counts.pending_documents }}</p>
+        </div>
+        <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl shadow-lg p-6 border border-purple-200">
+            <div class="flex items-center justify-between mb-4">
+                <div class="bg-purple-500 rounded-lg p-3">
+                    <i class="fas fa-id-card text-white text-xl"></i>
+                </div>
+            </div>
+            <h3 class="text-sm font-medium text-gray-600 mb-1">Pending Identity</h3>
+            <p class="text-4xl font-bold text-gray-900">{{ counts.pending_identity }}</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Filters & Search -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+        <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {% if view_all %}
+            <input type="hidden" name="view" value="all">
+            {% endif %}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                <input type="text" name="search" value="{{ current_search }}" placeholder="Search listings..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                <select name="status" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="">All Statuses</option>
+                    <option value="in_review" {% if current_status == 'in_review' %}selected{% endif %}>In Review</option>
+                    <option value="pending_documents" {% if current_status == 'pending_documents' %}selected{% endif %}>Pending Documents</option>
+                    <option value="pending_identity" {% if current_status == 'pending_identity' %}selected{% endif %}>Pending Identity</option>
+                    {% if view_all %}
+                    <option value="verified" {% if current_status == 'verified' %}selected{% endif %}>Verified</option>
+                    <option value="rejected" {% if current_status == 'rejected' %}selected{% endif %}>Rejected</option>
+                    <option value="draft" {% if current_status == 'draft' %}selected{% endif %}>Draft</option>
+                    {% endif %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">City</label>
+                <input type="text" name="city" value="{{ current_city }}" placeholder="Filter by city..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div class="flex items-end">
+                <button type="submit" class="w-full px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium">
+                    <i class="fas fa-filter mr-2"></i>Apply Filters
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Listings Table -->
+    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div class="px-6 py-5 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-purple-50">
+            <h2 class="text-xl font-semibold text-gray-900">
+                <i class="fas fa-list text-indigo-600 mr-2"></i>Pending Listings
+            </h2>
+        </div>
+
+        {% if listings %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Property</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Owner</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Submitted</th>
+                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for listing in listings %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center">
+                                {% if listing.photos.all.0 %}
+                                <img src="{{ listing.photos.all.0.image.url }}" alt="{{ listing.title }}" class="w-16 h-16 rounded-lg object-cover mr-4">
+                                {% else %}
+                                <div class="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center mr-4">
+                                    <i class="fas fa-home text-gray-400 text-2xl"></i>
+                                </div>
+                                {% endif %}
+                                <div>
+                                    <div class="text-sm font-semibold text-gray-900">{{ listing.title }}</div>
+                                    <div class="text-xs text-gray-500">{{ listing.get_property_type_display }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm text-gray-900">{{ listing.owner_profile.user.get_full_name|default:listing.owner_profile.user.username }}</div>
+                            <div class="text-xs text-gray-500">{{ listing.owner_profile.user.email }}</div>
+                            <div class="flex items-center mt-1 space-x-2">
+                                {% if listing.owner_profile.email_verified_at %}
+                                <span class="text-xs text-green-600"><i class="fas fa-check-circle"></i> Email</span>
+                                {% endif %}
+                                {% if listing.owner_profile.identity_status == 'approved' %}
+                                <span class="text-xs text-green-600"><i class="fas fa-id-card"></i> ID</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm text-gray-900">{{ listing.city }}</div>
+                            <div class="text-xs text-gray-500">{{ listing.state }}, {{ listing.country }}</div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm font-medium text-gray-900">{{ listing.currency }} {{ listing.price|floatformat:0 }}</div>
+                            <div class="text-xs text-gray-500">{{ listing.get_listing_type_display }}</div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="px-3 py-1 text-xs font-semibold rounded-full {% if listing.status == 'in_review' %}bg-blue-100 text-blue-800{% elif listing.status == 'pending_documents' %}bg-yellow-100 text-yellow-800{% else %}bg-purple-100 text-purple-800{% endif %}">
+                                {{ listing.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-500">
+                            {{ listing.created_at|date:"M d, Y" }}
+                        </td>
+                        <td class="px-6 py-4 text-right text-sm font-medium">
+                            <a href="{% url 'listings:review_detail' listing.pk %}" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                                <i class="fas fa-eye mr-2"></i>Review
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
+            <div class="flex items-center justify-between">
+                <div class="text-sm text-gray-700">
+                    Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </div>
+                <div class="flex space-x-2">
+                    {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_city %}&city={{ current_city }}{% endif %}{% if current_search %}&search={{ current_search }}{% endif %}" class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                        <i class="fas fa-chevron-left"></i> Previous
+                    </a>
+                    {% endif %}
+                    {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_city %}&city={{ current_city }}{% endif %}{% if current_search %}&search={{ current_search }}{% endif %}" class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                        Next <i class="fas fa-chevron-right"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% else %}
+        <div class="p-12 text-center">
+            <div class="mb-4">
+                <i class="fas fa-clipboard-check text-gray-300 text-6xl"></i>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">No listings to review</h3>
+            <p class="text-gray-500">All caught up! There are no pending listings at the moment.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

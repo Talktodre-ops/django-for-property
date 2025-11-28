@@ -1,0 +1,11 @@
+# Development Dependencies (MVP)
+Django==4.2.7
+Pillow==10.1.0
+
+# Production Dependencies (add when deploying to Railway)
+# dj-database-url==2.1.0    # Parse DATABASE_URL
+# psycopg2-binary==2.9.9     # PostgreSQL adapter
+# django-storages==1.14.2    # For Supabase Storage
+# boto3==1.33.6              # S3-compatible storage backend
+# python-dotenv==1.0.0       # Load .env files
+

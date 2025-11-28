@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python manage.py migrate:*)",
+      "Bash(python manage.py shell:*)",
+      "Bash(python manage.py check:*)",
+      "Bash(python test_upload.py:*)",
+      "Bash(python test_owner_upload.py:*)",
+      "Bash(python test_admin_actions.py:*)",
+      "Bash(python:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

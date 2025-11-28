@@ -1,0 +1,509 @@
+{% extends 'base.html' %}
+
+{% block title %}Review: {{ listing.title }} - Heimly{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Header with Back Button -->
+    <div class="mb-6">
+        <a href="{% url 'listings:review_queue' %}" class="inline-flex items-center text-indigo-600 hover:text-indigo-700 font-medium mb-4">
+            <i class="fas fa-arrow-left mr-2"></i>Back to Review Queue
+        </a>
+        <div class="flex justify-between items-start">
+            <div>
+                <h1 class="text-4xl font-bold text-gray-900 mb-2">{{ listing.title }}</h1>
+                <p class="text-gray-600">Review and verify this property listing</p>
+            </div>
+            <span class="px-4 py-2 text-sm font-semibold rounded-full {% if listing.status == 'in_review' %}bg-blue-100 text-blue-800{% elif listing.status == 'pending_documents' %}bg-yellow-100 text-yellow-800{% else %}bg-purple-100 text-purple-800{% endif %}">
+                {{ listing.get_status_display }}
+            </span>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Main Content -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Property Photos -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-images text-indigo-600 mr-2"></i>Property Photos
+                </h2>
+                {% if listing.photos.all %}
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {% for photo in listing.photos.all %}
+                    <div class="relative group">
+                        <img src="{{ photo.image.url }}" alt="{{ photo.caption }}" class="w-full h-48 object-cover rounded-lg">
+                        {% if photo.is_primary %}
+                        <div class="absolute top-2 left-2 px-2 py-1 bg-green-600 text-white text-xs font-semibold rounded">
+                            Primary
+                        </div>
+                        {% endif %}
+                        {% if photo.caption %}
+                        <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-60 text-white text-xs p-2 rounded-b-lg">
+                            {{ photo.caption }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-8 bg-gray-50 rounded-lg">
+                    <i class="fas fa-camera text-gray-300 text-4xl mb-2"></i>
+                    <p class="text-gray-500">No photos uploaded</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Property Details -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-info-circle text-indigo-600 mr-2"></i>Property Details
+                </h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 mb-1">Property Type</label>
+                        <p class="text-gray-900">{{ listing.get_property_type_display }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 mb-1">Listing Type</label>
+                        <p class="text-gray-900">{{ listing.get_listing_type_display }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 mb-1">Price</label>
+                        <p class="text-gray-900 font-semibold text-lg">{{ listing.currency }} {{ listing.price|floatformat:0 }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 mb-1">Property Size</label>
+                        <p class="text-gray-900">{{ listing.property_size }} {{ listing.size_unit }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 mb-1">Bedrooms</label>
+                        <p class="text-gray-900">{{ listing.bedrooms }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 mb-1">Bathrooms</label>
+                        <p class="text-gray-900">{{ listing.bathrooms }}</p>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-4 border-t border-gray-200">
+                    <label class="block text-sm font-medium text-gray-500 mb-2">Location</label>
+                    <p class="text-gray-900">
+                        {{ listing.address }}<br>
+                        {{ listing.city }}, {{ listing.state }} {{ listing.postal_code }}<br>
+                        {{ listing.country }}
+                    </p>
+                </div>
+
+                <div class="mt-4 pt-4 border-t border-gray-200">
+                    <label class="block text-sm font-medium text-gray-500 mb-2">Description</label>
+                    <p class="text-gray-900 whitespace-pre-line">{{ listing.description }}</p>
+                </div>
+
+                {% if listing.amenities %}
+                <div class="mt-4 pt-4 border-t border-gray-200">
+                    <label class="block text-sm font-medium text-gray-500 mb-2">Amenities</label>
+                    <div class="flex flex-wrap gap-2">
+                        {% for amenity, label in listing.amenities.items %}
+                        {% if label %}
+                        <span class="px-3 py-1 bg-indigo-100 text-indigo-800 text-sm rounded-full">
+                            <i class="fas fa-check mr-1"></i>{{ amenity|title }}
+                        </span>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Documents -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-file-alt text-indigo-600 mr-2"></i>Property Documents
+                </h2>
+                {% if listing.documents.all %}
+                <div class="space-y-3">
+                    {% for document in listing.documents.all %}
+                    <div id="document-{{ document.id }}" class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                        <div class="flex items-center space-x-3 flex-1">
+                            <div class="bg-indigo-100 rounded-lg p-3">
+                                <i class="fas fa-file-pdf text-indigo-600 text-xl"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-medium text-gray-900">{{ document.get_document_type_display }}</p>
+                                <p class="text-sm text-gray-500">{{ document.file.name|slice:"10:" }}</p>
+                                
+                                <!-- Status badge -->
+                                <span id="status-{{ document.id }}" class="inline-block mt-2 px-3 py-1 text-xs font-semibold rounded-full {% if document.status == 'approved' %}bg-green-100 text-green-800{% elif document.status == 'needs_resubmission' %}bg-red-100 text-red-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                    {{ document.get_status_display }}
+                                </span>
+                                
+                                <!-- Reviewer comment (if rejected) -->
+                                {% if document.reviewer_comment and document.status == 'needs_resubmission' %}
+                                <p id="comment-{{ document.id }}" class="text-xs text-red-600 mt-1">
+                                    <i class="fas fa-comment"></i> {{ document.reviewer_comment }}
+                                </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center space-x-2">
+                            <!-- View button -->
+                            <a href="{{ document.file.url }}" target="_blank" class="inline-flex items-center px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm">
+                                <i class="fas fa-external-link-alt mr-1"></i>View
+                            </a>
+                            
+                            <!-- Approve/Reject buttons (only show if not already reviewed) -->
+                            {% if document.status == 'uploaded' %}
+                            <div id="actions-{{ document.id }}" class="flex space-x-2">
+                                <button 
+                                    onclick="moderateDocument({{ document.id }}, 'approve')"
+                                    class="inline-flex items-center px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm">
+                                    <i class="fas fa-check mr-1"></i>Approve
+                                </button>
+                                <button 
+                                    onclick="showRejectModal({{ document.id }})"
+                                    class="inline-flex items-center px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm">
+                                    <i class="fas fa-times mr-1"></i>Reject
+                                </button>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-8 bg-gray-50 rounded-lg">
+                    <i class="fas fa-file text-gray-300 text-4xl mb-2"></i>
+                    <p class="text-gray-500">No documents uploaded</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="space-y-6">
+            <!-- Owner Information -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-user text-indigo-600 mr-2"></i>Owner Information
+                </h2>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 mb-1">Name</label>
+                        <p class="text-gray-900">{{ listing.owner_profile.user.get_full_name|default:listing.owner_profile.user.username }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 mb-1">Email</label>
+                        <div class="flex items-center justify-between">
+                            <p class="text-gray-900">{{ listing.owner_profile.user.email }}</p>
+                            {% if owner_verification.email_verified %}
+                            <span class="text-green-600"><i class="fas fa-check-circle"></i></span>
+                            {% else %}
+                            <span class="text-gray-400"><i class="fas fa-times-circle"></i></span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 mb-1">Phone</label>
+                        <div class="flex items-center justify-between">
+                            <p class="text-gray-900">{{ listing.owner_profile.phone_number|default:"Not provided" }}</p>
+                            {% if owner_verification.phone_verified %}
+                            <span class="text-green-600"><i class="fas fa-check-circle"></i></span>
+                            {% else %}
+                            <span class="text-gray-400"><i class="fas fa-times-circle"></i></span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 mb-1">Identity Status</label>
+                        <div class="flex items-center justify-between">
+                            <p class="text-gray-900">{{ owner_verification.identity_status }}</p>
+                            {% if owner_verification.identity_verified %}
+                            <span class="text-green-600"><i class="fas fa-check-circle"></i></span>
+                            {% else %}
+                            <span class="text-gray-400"><i class="fas fa-times-circle"></i></span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if listing.owner_profile.id_document %}
+                    <div class="pt-3 border-t border-gray-200">
+                        <a href="{{ listing.owner_profile.id_document.url }}" target="_blank" class="inline-flex items-center text-indigo-600 hover:text-indigo-700 font-medium text-sm">
+                            <i class="fas fa-id-card mr-2"></i>View Owner ID Document
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Prerequisites Check -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-clipboard-check text-indigo-600 mr-2"></i>Prerequisites
+                </h2>
+                <div class="space-y-3">
+                    <div class="flex items-start space-x-3">
+                        {% if prerequisites.owner_verified %}
+                        <i class="fas fa-check-circle text-green-600 mt-1"></i>
+                        <div>
+                            <p class="font-medium text-green-900">Owner Verified</p>
+                            <p class="text-sm text-green-700">Identity approved{% if owner_verification.email_verified %} and email verified{% elif owner_verification.phone_verified %} and phone verified{% endif %}</p>
+                        </div>
+                        {% else %}
+                        <i class="fas fa-exclamation-circle text-yellow-600 mt-1"></i>
+                        <div>
+                            <p class="font-medium text-yellow-900">Owner Not Verified</p>
+                            <p class="text-sm text-yellow-700">{{ prerequisites.owner_issues|join:", " }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="flex items-start space-x-3">
+                        {% if prerequisites.has_photos %}
+                        <i class="fas fa-check-circle text-green-600 mt-1"></i>
+                        <div>
+                            <p class="font-medium text-green-900">Photos Uploaded</p>
+                            <p class="text-sm text-green-700">{{ listing.photos.all|length }} photo(s)</p>
+                        </div>
+                        {% else %}
+                        <i class="fas fa-exclamation-circle text-red-600 mt-1"></i>
+                        <div>
+                            <p class="font-medium text-red-900">No Photos</p>
+                            <p class="text-sm text-red-700">At least one photo required</p>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="flex items-start space-x-3">
+                        {% if prerequisites.has_documents %}
+                        <i class="fas fa-check-circle text-green-600 mt-1"></i>
+                        <div>
+                            <p class="font-medium text-green-900">Documents Uploaded</p>
+                            <p class="text-sm text-green-700">{{ listing.documents.all|length }} document(s)</p>
+                        </div>
+                        {% else %}
+                        <i class="fas fa-exclamation-circle text-red-600 mt-1"></i>
+                        <div>
+                            <p class="font-medium text-red-900">No Documents</p>
+                            <p class="text-sm text-red-700">At least one document required</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Review Actions -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-gavel text-indigo-600 mr-2"></i>Review Actions
+                </h2>
+                <div class="space-y-3">
+                    <a href="{% url 'listings:review_approve' listing.pk %}" class="block w-full px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 shadow-md transition-all font-medium text-center">
+                        <i class="fas fa-check mr-2"></i>Approve Listing
+                    </a>
+                    <a href="{% url 'listings:review_reject' listing.pk %}" class="block w-full px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 shadow-md transition-all font-medium text-center">
+                        <i class="fas fa-times mr-2"></i>Reject Listing
+                    </a>
+                </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                    <i class="fas fa-clock text-indigo-600 mr-2"></i>Timeline
+                </h2>
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Created:</span>
+                        <span class="text-gray-900 font-medium">{{ listing.created_at|date:"M d, Y g:i A" }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Last Updated:</span>
+                        <span class="text-gray-900 font-medium">{{ listing.updated_at|date:"M d, Y g:i A" }}</span>
+                    </div>
+                    {% if listing.verified_at %}
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Verified:</span>
+                        <span class="text-gray-900 font-medium">{{ listing.verified_at|date:"M d, Y g:i A" }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Rejection Modal -->
+<div id="rejectModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+        <h3 class="text-xl font-bold mb-4">Reject Document</h3>
+        <form id="rejectForm">
+            <input type="hidden" id="rejectDocumentId" />
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Reason for rejection (required):
+                </label>
+                <textarea 
+                    id="rejectComment" 
+                    rows="4" 
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="e.g., Document is unclear, missing information, expired..."
+                    required></textarea>
+            </div>
+            <div class="flex space-x-3">
+                <button 
+                    type="button"
+                    onclick="closeRejectModal()"
+                    class="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                    Cancel
+                </button>
+                <button 
+                    type="submit"
+                    class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                    Reject Document
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function moderateDocument(documentId, action) {
+    // Get comment from modal if it's a reject action
+    const comment = action === 'reject' ? document.getElementById('rejectComment').value.trim() : '';
+    
+    // Get CSRF token from cookie
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    const csrfToken = getCookie('csrftoken');
+    
+    // Prepare form data
+    const formData = new FormData();
+    formData.append('action', action);
+    if (comment) formData.append('comment', comment);
+    
+    // Show loading state
+    const statusBadge = document.getElementById(`status-${documentId}`);
+    const originalText = statusBadge.textContent;
+    const originalClass = statusBadge.className;
+    statusBadge.textContent = 'Processing...';
+    statusBadge.className = 'inline-block mt-2 px-3 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800';
+    
+    // Disable buttons
+    const actionsDiv = document.getElementById(`actions-${documentId}`);
+    if (actionsDiv) {
+        const buttons = actionsDiv.querySelectorAll('button');
+        buttons.forEach(btn => btn.disabled = true);
+    }
+    
+    // Make AJAX request
+    fetch(`/staff/documents/${documentId}/moderate/`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': csrfToken,
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update status badge
+            statusBadge.textContent = data.status_display;
+            if (data.status === 'approved') {
+                statusBadge.className = 'inline-block mt-2 px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800';
+            } else {
+                statusBadge.className = 'inline-block mt-2 px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800';
+            }
+            
+            // Hide approve/reject buttons
+            if (actionsDiv) actionsDiv.remove();
+            
+            // Show reviewer comment if rejected
+            if (data.status === 'needs_resubmission' && data.comment) {
+                // Remove existing comment if any
+                const existingComment = document.getElementById(`comment-${documentId}`);
+                if (existingComment) existingComment.remove();
+                
+                const commentDiv = document.createElement('p');
+                commentDiv.id = `comment-${documentId}`;
+                commentDiv.className = 'text-xs text-red-600 mt-1';
+                commentDiv.innerHTML = `<i class="fas fa-comment"></i> ${data.comment}`;
+                statusBadge.parentElement.appendChild(commentDiv);
+            }
+            
+            // Close rejection modal if it was a reject action (must happen after all UI updates)
+            if (action === 'reject') {
+                // Small delay to ensure UI updates are visible before closing modal
+                setTimeout(() => {
+                    closeRejectModal();
+                }, 100);
+            }
+            
+        } else {
+            alert(`Error: ${data.error}`);
+            // Revert status badge
+            statusBadge.textContent = originalText;
+            statusBadge.className = originalClass;
+            
+            // Re-enable buttons
+            if (actionsDiv) {
+                const buttons = actionsDiv.querySelectorAll('button');
+                buttons.forEach(btn => btn.disabled = false);
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+        // Revert status badge
+        statusBadge.textContent = originalText;
+        statusBadge.className = originalClass;
+        
+        // Re-enable buttons
+        if (actionsDiv) {
+            const buttons = actionsDiv.querySelectorAll('button');
+            buttons.forEach(btn => btn.disabled = false);
+        }
+    });
+}
+
+function showRejectModal(documentId) {
+    document.getElementById('rejectDocumentId').value = documentId;
+    document.getElementById('rejectComment').value = '';
+    document.getElementById('rejectModal').classList.remove('hidden');
+}
+
+function closeRejectModal() {
+    document.getElementById('rejectModal').classList.add('hidden');
+    document.getElementById('rejectComment').value = '';
+}
+
+// Handle form submission
+document.getElementById('rejectForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const documentId = document.getElementById('rejectDocumentId').value;
+    const comment = document.getElementById('rejectComment').value.trim();
+    
+    if (!comment) {
+        alert('Please provide a reason for rejection.');
+        return;
+    }
+    
+    // Call moderateDocument - it will close the modal on success
+    moderateDocument(documentId, 'reject');
+});
+</script>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}Reject Listing - Heimly{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="bg-white rounded-xl shadow-lg p-8">
+        <div class="text-center mb-6">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
+                <i class="fas fa-times text-red-600 text-2xl"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Reject Listing</h1>
+            <p class="text-gray-600">Provide a reason for rejecting this property listing</p>
+        </div>
+
+        <div class="bg-gray-50 rounded-lg p-6 mb-6">
+            <h2 class="font-semibold text-gray-900 mb-2">{{ listing.title }}</h2>
+            <div class="text-sm text-gray-600 space-y-1">
+                <p><i class="fas fa-map-marker-alt mr-2"></i>{{ listing.city }}, {{ listing.state }}</p>
+                <p><i class="fas fa-tag mr-2"></i>{{ listing.currency }} {{ listing.price|floatformat:0 }}</p>
+                <p><i class="fas fa-user mr-2"></i>{{ listing.owner_profile.user.get_full_name|default:listing.owner_profile.user.username }}</p>
+            </div>
+        </div>
+
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+
+            <div>
+                <label for="reason" class="block text-sm font-medium text-gray-700 mb-2">
+                    Rejection Reason <span class="text-red-500">*</span>
+                </label>
+                <textarea
+                    id="reason"
+                    name="reason"
+                    rows="6"
+                    required
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    placeholder="Please explain why this listing is being rejected. Be specific and helpful - the owner will see this message."
+                ></textarea>
+                <p class="text-sm text-gray-500 mt-1">This reason will be sent to the owner to help them improve their listing.</p>
+            </div>
+
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div class="flex items-start space-x-3">
+                    <i class="fas fa-exclamation-triangle text-red-600 mt-0.5"></i>
+                    <div class="text-sm text-red-800">
+                        <p class="font-medium mb-1">What happens when you reject:</p>
+                        <ul class="list-disc list-inside space-y-1">
+                            <li>Listing status will be set to "Rejected"</li>
+                            <li>Listing will remain private (not visible)</li>
+                            <li>Owner will be notified with your rejection reason</li>
+                            <li>Owner can revise and resubmit the listing</li>
+                            <li>Action will be logged in the audit trail</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <div class="flex items-start space-x-3">
+                    <i class="fas fa-lightbulb text-yellow-600 mt-0.5"></i>
+                    <div class="text-sm text-yellow-800">
+                        <p class="font-medium mb-1">Common rejection reasons:</p>
+                        <ul class="list-disc list-inside space-y-1">
+                            <li>Incomplete or missing property information</li>
+                            <li>Photos are unclear or insufficient</li>
+                            <li>Missing required documents (ownership, permits)</li>
+                            <li>Property details appear inaccurate or misleading</li>
+                            <li>Listing violates platform policies</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end space-x-4 pt-4 border-t border-gray-200">
+                <a href="{% url 'listings:review_detail' listing.pk %}" class="px-6 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium">
+                    Cancel
+                </a>
+                <button type="submit" class="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 shadow-md transition-all font-medium">
+                    <i class="fas fa-times mr-2"></i>Confirm Rejection
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ listing.title }} - Heimly{% endblock %}
+
+{% block content %}
+<div>
+    <!-- Header Section -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-6 border-l-4 {% if listing.status == 'verified' %}border-green-500{% elif listing.status == 'rejected' %}border-red-500{% else %}border-yellow-500{% endif %}">
+        <div class="flex justify-between items-start mb-6">
+            <div class="flex-1">
+                <div class="flex items-center space-x-3 mb-2">
+                    <h1 class="text-3xl font-bold text-gray-900">{{ listing.title }}</h1>
+                    <span class="px-3 py-1 text-xs font-semibold rounded-full {% if listing.status == 'verified' %}bg-green-100 text-green-800{% elif listing.status == 'rejected' %}bg-red-100 text-red-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                        {{ listing.get_status_display }}
+                    </span>
+                </div>
+                <div class="flex items-center text-gray-600">
+                    <i class="fas fa-map-marker-alt mr-2 text-indigo-600"></i>
+                    <span>{{ listing.address_line }}, {{ listing.city }}, {{ listing.state }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Price Highlight -->
+        <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-6 mb-6 border border-indigo-200">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-600 mb-1">Price</p>
+                    <p class="text-4xl font-bold text-indigo-600">{{ listing.currency }} {{ listing.price|floatformat:0 }}</p>
+                    {% if listing.is_negotiable %}
+                    <p class="text-sm text-gray-500 mt-1">Negotiable</p>
+                    {% endif %}
+                </div>
+                {% if listing.status == 'draft' %}
+                <form method="post" action="{% url 'listings:listing_submit' listing.pk %}" class="inline">
+                    {% csrf_token %}
+                    <button type="submit" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 shadow-md transition-all font-medium">
+                        <i class="fas fa-paper-plane mr-2"></i>Submit for Review
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            {% if listing.bedrooms %}
+            <div class="bg-gray-50 rounded-lg p-4 text-center">
+                <i class="fas fa-bed text-indigo-600 text-xl mb-2"></i>
+                <p class="text-2xl font-bold text-gray-900">{{ listing.bedrooms }}</p>
+                <p class="text-xs text-gray-600">Bedrooms</p>
+            </div>
+            {% endif %}
+            {% if listing.bathrooms %}
+            <div class="bg-gray-50 rounded-lg p-4 text-center">
+                <i class="fas fa-bath text-indigo-600 text-xl mb-2"></i>
+                <p class="text-2xl font-bold text-gray-900">{{ listing.bathrooms }}</p>
+                <p class="text-xs text-gray-600">Bathrooms</p>
+            </div>
+            {% endif %}
+            {% if listing.parking_spaces %}
+            <div class="bg-gray-50 rounded-lg p-4 text-center">
+                <i class="fas fa-car text-indigo-600 text-xl mb-2"></i>
+                <p class="text-2xl font-bold text-gray-900">{{ listing.parking_spaces }}</p>
+                <p class="text-xs text-gray-600">Parking</p>
+            </div>
+            {% endif %}
+            <div class="bg-gray-50 rounded-lg p-4 text-center">
+                <i class="fas fa-home text-indigo-600 text-xl mb-2"></i>
+                <p class="text-lg font-bold text-gray-900">{{ listing.get_property_type_display }}</p>
+                <p class="text-xs text-gray-600">Type</p>
+            </div>
+        </div>
+
+        <!-- Description -->
+        <div class="mb-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-3 flex items-center">
+                <i class="fas fa-align-left text-indigo-600 mr-2"></i>Description
+            </h2>
+            <div class="bg-gray-50 rounded-lg p-4">
+                <p class="text-gray-700 leading-relaxed whitespace-pre-line">{{ listing.description }}</p>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-wrap gap-3 pt-6 border-t border-gray-200">
+            <a href="{% url 'listings:listing_edit' listing.pk %}" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                <i class="fas fa-edit mr-2"></i>Edit
+            </a>
+            <a href="{% url 'listings:listing_photos' listing.pk %}" class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                <i class="fas fa-images mr-2"></i>Manage Photos
+            </a>
+            <a href="{% url 'listings:listing_documents' listing.pk %}" class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
+                <i class="fas fa-file-upload mr-2"></i>Manage Documents
+            </a>
+            <a href="{% url 'listings:dashboard' %}" class="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Photos -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold text-gray-900 flex items-center">
+                <i class="fas fa-images text-indigo-600 mr-2"></i>Photos
+            </h2>
+            <a href="{% url 'listings:listing_photos' listing.pk %}" class="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
+                {% if listing.photos.all %}Manage{% else %}Add Photos{% endif %}
+            </a>
+        </div>
+        {% if listing.photos.all %}
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {% for photo in listing.photos.all %}
+            <div class="relative group">
+                <img src="{{ photo.image.url }}" alt="{{ photo.caption }}" class="w-full h-40 object-cover rounded-lg shadow-md group-hover:shadow-lg transition-shadow">
+                {% if photo.is_primary %}
+                <span class="absolute top-2 right-2 px-2 py-1 bg-green-500 text-white text-xs font-semibold rounded-full">
+                    <i class="fas fa-star"></i> Primary
+                </span>
+                {% endif %}
+                {% if photo.caption %}
+                <p class="text-xs text-gray-600 mt-2 truncate">{{ photo.caption }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-12 bg-gray-50 rounded-lg">
+            <i class="fas fa-images text-gray-300 text-5xl mb-4"></i>
+            <p class="text-gray-500 mb-4">No photos uploaded yet</p>
+            <a href="{% url 'listings:listing_photos' listing.pk %}" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                <i class="fas fa-plus mr-2"></i>Add Photos
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Documents -->
+    <div class="bg-white rounded-xl shadow-lg p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold text-gray-900 flex items-center">
+                <i class="fas fa-file-alt text-indigo-600 mr-2"></i>Documents
+            </h2>
+            <a href="{% url 'listings:listing_documents' listing.pk %}" class="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
+                {% if listing.documents.all %}Manage{% else %}Upload Documents{% endif %}
+            </a>
+        </div>
+        {% if listing.documents.all %}
+        <div class="space-y-3">
+            {% for doc in listing.documents.all %}
+            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-indigo-300 transition-colors">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-indigo-100 rounded-lg p-3">
+                        <i class="fas fa-file-pdf text-indigo-600"></i>
+                    </div>
+                    <div>
+                        <p class="font-medium text-gray-900">{{ doc.get_doc_type_display }}</p>
+                        <p class="text-xs text-gray-500">Uploaded {{ doc.uploaded_at|date:"M d, Y" }}</p>
+                    </div>
+                </div>
+                <span class="px-3 py-1 text-xs font-semibold rounded-full {% if doc.status == 'approved' %}bg-green-100 text-green-800{% elif doc.status == 'needs_resubmission' %}bg-red-100 text-red-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                    {{ doc.get_status_display }}
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-12 bg-gray-50 rounded-lg">
+            <i class="fas fa-file-alt text-gray-300 text-5xl mb-4"></i>
+            <p class="text-gray-500 mb-4">No documents uploaded yet</p>
+            <a href="{% url 'listings:listing_documents' listing.pk %}" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                <i class="fas fa-upload mr-2"></i>Upload Documents
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
