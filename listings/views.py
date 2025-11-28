@@ -1,5 +1,6 @@
 """Views for listings app."""
 
+import random
 import secrets
 from django.contrib import messages
 from django.contrib.auth import login
@@ -425,6 +426,134 @@ def confirm_email_verification(request, token):
     cache.delete(cache_key)
 
     return redirect("listings:profile")
+
+
+@login_required
+def request_phone_otp(request):
+    """Generate and display OTP for phone verification (console-based for MVP)."""
+    owner_profile, _ = OwnerProfile.objects.get_or_create(user=request.user)
+    
+    # Check if already verified
+    if owner_profile.phone_verified_at:
+        messages.info(request, "Your phone number is already verified!")
+        return redirect("listings:profile")
+    
+    # Check if user has a phone number
+    if not owner_profile.phone_number:
+        messages.error(request, "Please add your phone number before requesting verification.")
+        return redirect("listings:profile")
+    
+    # Generate 6-digit OTP
+    otp_code = str(random.randint(100000, 999999))
+    
+    # Store OTP in cache (valid for 10 minutes)
+    cache_key = f"phone_otp_{request.user.id}"
+    cache.set(cache_key, {
+        "otp": otp_code,
+        "phone": owner_profile.phone_number,
+        "user_id": request.user.id,
+    }, timeout=600)  # 10 minutes
+    
+    # Log OTP to console (instead of sending SMS)
+    print("\n" + "="*80)
+    print("PHONE VERIFICATION OTP")
+    print("="*80)
+    print(f"To: {owner_profile.phone_number}")
+    print(f"User: {request.user.username}")
+    print(f"\nYour verification code is: {otp_code}")
+    print("\n(For demo purposes - check server console. In production, this would be sent via SMS)")
+    print("="*80 + "\n")
+    
+    # Log the action
+    AuditEntry.objects.create(
+        subject_type="owner_profile",
+        subject_id=owner_profile.id,
+        actor=request.user,
+        action="phone.otp_requested",
+        payload={
+            "phone": owner_profile.phone_number,
+            "note": "OTP logged to console for MVP demo",
+        },
+    )
+    
+    messages.success(
+        request,
+        f"Verification code sent! Check the server console for your OTP code. "
+        f"(Code valid for 10 minutes)"
+    )
+    
+    # Redirect to OTP verification page
+    return redirect("listings:verify_phone_otp")
+
+
+@login_required
+def verify_phone_otp(request):
+    """Verify phone OTP code."""
+    owner_profile, _ = OwnerProfile.objects.get_or_create(user=request.user)
+    
+    # Check if already verified
+    if owner_profile.phone_verified_at:
+        messages.info(request, "Your phone number is already verified!")
+        return redirect("listings:profile")
+    
+    if request.method == "POST":
+        otp_code = request.POST.get("otp_code", "").strip()
+        
+        if not otp_code:
+            messages.error(request, "Please enter the verification code.")
+            return render(request, "listings/verify_phone_otp.html", {
+                "owner_profile": owner_profile,
+            })
+        
+        # Get OTP from cache
+        cache_key = f"phone_otp_{request.user.id}"
+        otp_data = cache.get(cache_key)
+        
+        if not otp_data:
+            messages.error(request, "OTP code expired or invalid. Please request a new one.")
+            return render(request, "listings/verify_phone_otp.html", {
+                "owner_profile": owner_profile,
+            })
+        
+        # Verify OTP matches
+        if otp_code != otp_data.get("otp"):
+            messages.error(request, "Invalid verification code. Please try again.")
+            return render(request, "listings/verify_phone_otp.html", {
+                "owner_profile": owner_profile,
+            })
+        
+        # Verify it's for the correct user
+        if otp_data.get("user_id") != request.user.id:
+            messages.error(request, "This verification code is not for your account.")
+            return render(request, "listings/verify_phone_otp.html", {
+                "owner_profile": owner_profile,
+            })
+        
+        # Mark phone as verified
+        owner_profile.phone_verified_at = timezone.now()
+        owner_profile.save()
+        
+        # Log the action
+        AuditEntry.objects.create(
+            subject_type="owner_profile",
+            subject_id=owner_profile.id,
+            actor=request.user,
+            action="phone.verified",
+            payload={
+                "phone": owner_profile.phone_number,
+            },
+        )
+        
+        # Delete OTP from cache
+        cache.delete(cache_key)
+        
+        messages.success(request, "Phone number verified successfully! ✓")
+        return redirect("listings:profile")
+    
+    # GET request - show OTP entry form
+    return render(request, "listings/verify_phone_otp.html", {
+        "owner_profile": owner_profile,
+    })
 
 
 # ============================================================================

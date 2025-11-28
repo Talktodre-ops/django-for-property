@@ -44,6 +44,17 @@ urlpatterns = [
         views.confirm_email_verification,
         name="confirm_email_verification",
     ),
+    # Phone verification
+    path(
+        "verify-phone/",
+        views.request_phone_otp,
+        name="request_phone_otp",
+    ),
+    path(
+        "verify-phone/confirm/",
+        views.verify_phone_otp,
+        name="verify_phone_otp",
+    ),
     # Staff review queue
     path(
         "staff/reviews/",
