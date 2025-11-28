@@ -292,13 +292,16 @@
                                 {% if document.status == 'uploaded' %}
                                 <div id="actions-{{ document.id }}" class="flex space-x-3">
                                     <button
-                                        onclick="moderateDocument({{ document.id }}, 'approve')"
-                                        class="inline-flex items-center px-5 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105">
+                                        type="button"
+                                        data-document-id="{{ document.id }}"
+                                        data-action="approve"
+                                        class="inline-flex items-center px-5 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 document-moderate-btn">
                                         <i class="fas fa-check mr-2"></i>Approve
                                     </button>
                                     <button
-                                        onclick="showRejectModal({{ document.id }})"
-                                        class="inline-flex items-center px-5 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl hover:from-red-700 hover:to-red-800 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105">
+                                        type="button"
+                                        data-document-id="{{ document.id }}"
+                                        class="inline-flex items-center px-5 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl hover:from-red-700 hover:to-red-800 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 document-reject-btn">
                                         <i class="fas fa-times mr-2"></i>Reject
                                     </button>
                                 </div>
@@ -695,6 +698,26 @@ document.getElementById('rejectForm').addEventListener('submit', function(e) {
 
     // Call moderateDocument - it will close the modal on success
     moderateDocument(documentId, 'reject');
+});
+
+// Bind event listeners for approve/reject buttons using data attributes
+document.addEventListener('DOMContentLoaded', function() {
+    // Approve buttons
+    document.querySelectorAll('.document-moderate-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const documentId = this.getAttribute('data-document-id');
+            const action = this.getAttribute('data-action');
+            moderateDocument(documentId, action);
+        });
+    });
+    
+    // Reject buttons
+    document.querySelectorAll('.document-reject-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const documentId = this.getAttribute('data-document-id');
+            showRejectModal(documentId);
+        });
+    });
 });
 </script>
 {% endblock %}

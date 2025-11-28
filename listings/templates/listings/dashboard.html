@@ -409,11 +409,9 @@
     {% if listings %}
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px;">
         {% for listing in listings %}
-        <div class="listing-card" onclick="window.location='{% url 'listings:listing_detail' listing.pk %}'">
-            <div class="listing-image" {% if listing.primary_photo %}style="background-image: url('{{ listing.primary_photo.image.url }}');"{% endif %}>
-                {% if not listing.primary_photo %}
+        <a href="{% url 'listings:listing_detail' listing.pk %}" class="listing-card" style="text-decoration: none; color: inherit; display: block;">
+            <div class="listing-image">
                 <i class="fas fa-home"></i>
-                {% endif %}
                 {% if listing.status == 'verified' %}
                 <span class="listing-status-badge verified">
                     <i class="fas fa-check-circle"></i>
@@ -462,7 +460,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </a>
         {% endfor %}
     </div>
     {% else %}

@@ -107,3 +107,8 @@ yarn-error.log*
 # Documentation builds (if using Sphinx)
 docs/_build/
 
+.cursorrules
+CHECK_ID_IN_ADMIN.md
+test_admin_actions.py
+HOW_VERIFICATION_WORKS.md
+VERIFICATION_FLOW.md
