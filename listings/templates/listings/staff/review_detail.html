@@ -3,111 +3,240 @@
 {% block title %}Review: {{ listing.title }} - Heimly{% endblock %}
 
 {% block content %}
+<style>
+    @keyframes slideInLeft {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.7;
+        }
+    }
+
+    .animate-slide-left {
+        animation: slideInLeft 0.5s ease-out;
+    }
+
+    .animate-slide-right {
+        animation: slideInRight 0.5s ease-out;
+    }
+
+    .animate-fade {
+        animation: fadeIn 0.6s ease-out;
+    }
+
+    .card-hover {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .card-hover:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    .photo-hover {
+        transition: all 0.3s ease;
+    }
+
+    .photo-hover:hover {
+        transform: scale(1.05);
+    }
+
+    .glass-morphism {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .gradient-border {
+        position: relative;
+        background: linear-gradient(white, white) padding-box,
+                    linear-gradient(135deg, #667eea 0%, #764ba2 100%) border-box;
+        border: 2px solid transparent;
+    }
+</style>
+
 <div class="max-w-7xl mx-auto">
+    <!-- Decorative Background -->
+    <div class="absolute inset-0 -z-10 overflow-hidden">
+        <div class="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-indigo-100/30 to-purple-100/30 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-blue-100/30 to-cyan-100/30 rounded-full blur-3xl"></div>
+    </div>
+
     <!-- Header with Back Button -->
-    <div class="mb-6">
-        <a href="{% url 'listings:review_queue' %}" class="inline-flex items-center text-indigo-600 hover:text-indigo-700 font-medium mb-4">
-            <i class="fas fa-arrow-left mr-2"></i>Back to Review Queue
+    <div class="mb-8 animate-fade">
+        <a href="{% url 'listings:review_queue' %}" class="group inline-flex items-center text-gray-600 hover:text-indigo-700 font-semibold mb-6 px-5 py-3 bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-x-1">
+            <i class="fas fa-arrow-left mr-3 group-hover:-translate-x-1 transition-transform"></i>
+            <span>Back to Review Queue</span>
         </a>
+
         <div class="flex justify-between items-start">
             <div>
-                <h1 class="text-4xl font-bold text-gray-900 mb-2">{{ listing.title }}</h1>
-                <p class="text-gray-600">Review and verify this property listing</p>
+                <h1 class="text-5xl font-extrabold bg-gradient-to-r from-gray-900 via-indigo-900 to-purple-900 bg-clip-text text-transparent mb-3">
+                    {{ listing.title }}
+                </h1>
+                <p class="text-lg text-gray-600">Review and verify this property listing</p>
             </div>
-            <span class="px-4 py-2 text-sm font-semibold rounded-full {% if listing.status == 'in_review' %}bg-blue-100 text-blue-800{% elif listing.status == 'pending_documents' %}bg-yellow-100 text-yellow-800{% else %}bg-purple-100 text-purple-800{% endif %}">
-                {{ listing.get_status_display }}
-            </span>
+            <div class="flex flex-col items-end space-y-3">
+                <span class="inline-flex items-center px-6 py-3 text-sm font-bold rounded-xl shadow-lg {% if listing.status == 'verified' %}bg-gradient-to-r from-green-500 to-green-600 text-white{% elif listing.status == 'rejected' %}bg-gradient-to-r from-red-500 to-red-600 text-white{% elif listing.status == 'in_review' %}bg-gradient-to-r from-blue-500 to-blue-600 text-white{% elif listing.status == 'pending_documents' or listing.status == 'pending_identity' %}bg-gradient-to-r from-yellow-500 to-yellow-600 text-white{% else %}bg-gradient-to-r from-gray-500 to-gray-600 text-white{% endif %}">
+                    <i class="fas {% if listing.status == 'verified' %}fa-check-circle{% elif listing.status == 'rejected' %}fa-times-circle{% elif listing.status == 'in_review' %}fa-search{% else %}fa-clock{% endif %} mr-2"></i>
+                    {{ listing.get_status_display }}
+                </span>
+                <div class="text-sm text-gray-500">
+                    <i class="fas fa-calendar-alt mr-2"></i>Submitted {{ listing.created_at|date:"M d, Y" }}
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- Main Content -->
-        <div class="lg:col-span-2 space-y-6">
+        <div class="lg:col-span-2 space-y-8 animate-slide-left">
             <!-- Property Photos -->
-            <div class="bg-white rounded-xl shadow-lg p-6">
-                <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                    <i class="fas fa-images text-indigo-600 mr-2"></i>Property Photos
-                </h2>
+            <div class="card-hover bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+                <div class="flex items-center mb-6">
+                    <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center mr-4">
+                        <i class="fas fa-images text-white text-xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-900">Property Photos</h2>
+                </div>
+
                 {% if listing.photos.all %}
                 <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {% for photo in listing.photos.all %}
-                    <div class="relative group">
-                        <img src="{{ photo.image.url }}" alt="{{ photo.caption }}" class="w-full h-48 object-cover rounded-lg">
+                    <div class="relative group overflow-hidden rounded-xl">
+                        <img src="{{ photo.image.url }}" alt="{{ photo.caption }}" class="photo-hover w-full h-56 object-cover rounded-xl">
                         {% if photo.is_primary %}
-                        <div class="absolute top-2 left-2 px-2 py-1 bg-green-600 text-white text-xs font-semibold rounded">
-                            Primary
+                        <div class="absolute top-3 left-3 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white text-xs font-bold rounded-lg shadow-lg flex items-center">
+                            <i class="fas fa-star mr-2"></i>Primary
                         </div>
                         {% endif %}
                         {% if photo.caption %}
-                        <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-60 text-white text-xs p-2 rounded-b-lg">
+                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent text-white text-sm p-4 rounded-b-xl">
                             {{ photo.caption }}
                         </div>
                         {% endif %}
+                        <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/0 to-purple-500/0 group-hover:from-indigo-500/20 group-hover:to-purple-500/20 transition-all duration-300 rounded-xl"></div>
                     </div>
                     {% endfor %}
                 </div>
                 {% else %}
-                <div class="text-center py-8 bg-gray-50 rounded-lg">
-                    <i class="fas fa-camera text-gray-300 text-4xl mb-2"></i>
-                    <p class="text-gray-500">No photos uploaded</p>
+                <div class="text-center py-16 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border-2 border-dashed border-gray-300">
+                    <div class="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-camera text-gray-400 text-3xl"></i>
+                    </div>
+                    <p class="text-gray-500 font-medium">No photos uploaded</p>
                 </div>
                 {% endif %}
             </div>
 
             <!-- Property Details -->
-            <div class="bg-white rounded-xl shadow-lg p-6">
-                <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                    <i class="fas fa-info-circle text-indigo-600 mr-2"></i>Property Details
-                </h2>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-500 mb-1">Property Type</label>
-                        <p class="text-gray-900">{{ listing.get_property_type_display }}</p>
+            <div class="card-hover bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+                <div class="flex items-center mb-6">
+                    <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center mr-4">
+                        <i class="fas fa-info-circle text-white text-xl"></i>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-500 mb-1">Listing Type</label>
-                        <p class="text-gray-900">{{ listing.get_listing_type_display }}</p>
+                    <h2 class="text-2xl font-bold text-gray-900">Property Details</h2>
+                </div>
+
+                <div class="grid grid-cols-2 gap-6 mb-6">
+                    <div class="p-5 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+                        <label class="block text-sm font-bold text-indigo-600 mb-2 uppercase tracking-wider flex items-center">
+                            <i class="fas fa-building mr-2"></i>Property Type
+                        </label>
+                        <p class="text-gray-900 font-semibold text-lg">{{ listing.get_property_type_display }}</p>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-500 mb-1">Price</label>
-                        <p class="text-gray-900 font-semibold text-lg">{{ listing.currency }} {{ listing.price|floatformat:0 }}</p>
+                    <div class="p-5 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-100">
+                        <label class="block text-sm font-bold text-purple-600 mb-2 uppercase tracking-wider flex items-center">
+                            <i class="fas fa-tag mr-2"></i>Listing Type
+                        </label>
+                        <p class="text-gray-900 font-semibold text-lg">{{ listing.get_listing_type_display }}</p>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-500 mb-1">Property Size</label>
-                        <p class="text-gray-900">{{ listing.property_size }} {{ listing.size_unit }}</p>
+                    <div class="p-5 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-100">
+                        <label class="block text-sm font-bold text-green-600 mb-2 uppercase tracking-wider flex items-center">
+                            <i class="fas fa-dollar-sign mr-2"></i>Price
+                        </label>
+                        <p class="text-gray-900 font-bold text-2xl">{{ listing.currency }} {{ listing.price|floatformat:0 }}</p>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-500 mb-1">Bedrooms</label>
-                        <p class="text-gray-900">{{ listing.bedrooms }}</p>
+                    <div class="p-5 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl border border-yellow-100">
+                        <label class="block text-sm font-bold text-yellow-600 mb-2 uppercase tracking-wider flex items-center">
+                            <i class="fas fa-ruler-combined mr-2"></i>Property Size
+                        </label>
+                        <p class="text-gray-900 font-semibold text-lg">{{ listing.property_size }} {{ listing.size_unit }}</p>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-500 mb-1">Bathrooms</label>
-                        <p class="text-gray-900">{{ listing.bathrooms }}</p>
+                    <div class="p-5 bg-gradient-to-br from-cyan-50 to-blue-50 rounded-xl border border-cyan-100">
+                        <label class="block text-sm font-bold text-cyan-600 mb-2 uppercase tracking-wider flex items-center">
+                            <i class="fas fa-bed mr-2"></i>Bedrooms
+                        </label>
+                        <p class="text-gray-900 font-semibold text-lg">{{ listing.bedrooms }}</p>
+                    </div>
+                    <div class="p-5 bg-gradient-to-br from-teal-50 to-cyan-50 rounded-xl border border-teal-100">
+                        <label class="block text-sm font-bold text-teal-600 mb-2 uppercase tracking-wider flex items-center">
+                            <i class="fas fa-bath mr-2"></i>Bathrooms
+                        </label>
+                        <p class="text-gray-900 font-semibold text-lg">{{ listing.bathrooms }}</p>
                     </div>
                 </div>
 
-                <div class="mt-4 pt-4 border-t border-gray-200">
-                    <label class="block text-sm font-medium text-gray-500 mb-2">Location</label>
-                    <p class="text-gray-900">
-                        {{ listing.address }}<br>
+                <div class="p-6 bg-gradient-to-br from-gray-50 to-slate-50 rounded-xl border border-gray-200 mb-6">
+                    <label class="block text-sm font-bold text-gray-700 mb-3 uppercase tracking-wider flex items-center">
+                        <i class="fas fa-map-marker-alt mr-2 text-red-500"></i>Location
+                    </label>
+                    <p class="text-gray-900 leading-relaxed">
+                        <span class="font-semibold">{{ listing.address }}</span><br>
                         {{ listing.city }}, {{ listing.state }} {{ listing.postal_code }}<br>
                         {{ listing.country }}
                     </p>
                 </div>
 
-                <div class="mt-4 pt-4 border-t border-gray-200">
-                    <label class="block text-sm font-medium text-gray-500 mb-2">Description</label>
-                    <p class="text-gray-900 whitespace-pre-line">{{ listing.description }}</p>
+                <div class="p-6 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl border border-indigo-100">
+                    <label class="block text-sm font-bold text-indigo-700 mb-3 uppercase tracking-wider flex items-center">
+                        <i class="fas fa-align-left mr-2"></i>Description
+                    </label>
+                    <p class="text-gray-900 whitespace-pre-line leading-relaxed">{{ listing.description }}</p>
                 </div>
 
                 {% if listing.amenities %}
-                <div class="mt-4 pt-4 border-t border-gray-200">
-                    <label class="block text-sm font-medium text-gray-500 mb-2">Amenities</label>
-                    <div class="flex flex-wrap gap-2">
+                <div class="mt-6 p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-100">
+                    <label class="block text-sm font-bold text-green-700 mb-4 uppercase tracking-wider flex items-center">
+                        <i class="fas fa-check-double mr-2"></i>Amenities
+                    </label>
+                    <div class="flex flex-wrap gap-3">
                         {% for amenity, label in listing.amenities.items %}
                         {% if label %}
-                        <span class="px-3 py-1 bg-indigo-100 text-indigo-800 text-sm rounded-full">
-                            <i class="fas fa-check mr-1"></i>{{ amenity|title }}
+                        <span class="px-4 py-2 bg-white border-2 border-green-200 text-green-800 text-sm rounded-lg font-semibold shadow-sm hover:shadow-md transition-shadow">
+                            <i class="fas fa-check-circle mr-2"></i>{{ amenity|title }}
                         </span>
                         {% endif %}
                         {% endfor %}
@@ -117,119 +246,155 @@
             </div>
 
             <!-- Documents -->
-            <div class="bg-white rounded-xl shadow-lg p-6">
-                <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                    <i class="fas fa-file-alt text-indigo-600 mr-2"></i>Property Documents
-                </h2>
+            <div class="card-hover bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+                <div class="flex items-center mb-6">
+                    <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center mr-4">
+                        <i class="fas fa-file-alt text-white text-xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-900">Property Documents</h2>
+                </div>
+
                 {% if listing.documents.all %}
-                <div class="space-y-3">
+                <div class="space-y-4">
                     {% for document in listing.documents.all %}
-                    <div id="document-{{ document.id }}" class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                        <div class="flex items-center space-x-3 flex-1">
-                            <div class="bg-indigo-100 rounded-lg p-3">
-                                <i class="fas fa-file-pdf text-indigo-600 text-xl"></i>
+                    <div id="document-{{ document.id }}" class="group relative overflow-hidden p-6 bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl hover:from-indigo-50 hover:to-purple-50 transition-all duration-300 border-2 border-gray-200 hover:border-indigo-300">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-4 flex-1">
+                                <div class="w-16 h-16 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                                    <i class="fas fa-file-pdf text-white text-2xl"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="font-bold text-gray-900 text-lg">{{ document.get_document_type_display }}</p>
+                                    <p class="text-sm text-gray-600 mt-1">{{ document.file.name|slice:"10:" }}</p>
+
+                                    <!-- Status badge -->
+                                    <span id="status-{{ document.id }}" class="inline-flex items-center mt-3 px-4 py-2 text-xs font-bold rounded-xl shadow-sm {% if document.status == 'approved' %}bg-gradient-to-r from-green-500 to-green-600 text-white{% elif document.status == 'needs_resubmission' %}bg-gradient-to-r from-red-500 to-red-600 text-white{% else %}bg-gradient-to-r from-yellow-500 to-yellow-600 text-white{% endif %}">
+                                        <i class="fas {% if document.status == 'approved' %}fa-check-circle{% elif document.status == 'needs_resubmission' %}fa-times-circle{% else %}fa-clock{% endif %} mr-2"></i>
+                                        {{ document.get_status_display }}
+                                    </span>
+
+                                    <!-- Reviewer comment (if rejected) -->
+                                    {% if document.reviewer_comment and document.status == 'needs_resubmission' %}
+                                    <p id="comment-{{ document.id }}" class="text-sm text-red-700 mt-3 p-3 bg-red-50 rounded-lg border border-red-200">
+                                        <i class="fas fa-comment mr-2"></i>{{ document.reviewer_comment }}
+                                    </p>
+                                    {% endif %}
+                                </div>
                             </div>
-                            <div class="flex-1">
-                                <p class="font-medium text-gray-900">{{ document.get_document_type_display }}</p>
-                                <p class="text-sm text-gray-500">{{ document.file.name|slice:"10:" }}</p>
-                                
-                                <!-- Status badge -->
-                                <span id="status-{{ document.id }}" class="inline-block mt-2 px-3 py-1 text-xs font-semibold rounded-full {% if document.status == 'approved' %}bg-green-100 text-green-800{% elif document.status == 'needs_resubmission' %}bg-red-100 text-red-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
-                                    {{ document.get_status_display }}
-                                </span>
-                                
-                                <!-- Reviewer comment (if rejected) -->
-                                {% if document.reviewer_comment and document.status == 'needs_resubmission' %}
-                                <p id="comment-{{ document.id }}" class="text-xs text-red-600 mt-1">
-                                    <i class="fas fa-comment"></i> {{ document.reviewer_comment }}
-                                </p>
+
+                            <div class="flex items-center space-x-3">
+                                <!-- View button -->
+                                <a href="{{ document.file.url }}" target="_blank" class="inline-flex items-center px-5 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105">
+                                    <i class="fas fa-external-link-alt mr-2"></i>View
+                                </a>
+
+                                <!-- Approve/Reject buttons (only show if not already reviewed) -->
+                                {% if document.status == 'uploaded' %}
+                                <div id="actions-{{ document.id }}" class="flex space-x-3">
+                                    <button
+                                        onclick="moderateDocument({{ document.id }}, 'approve')"
+                                        class="inline-flex items-center px-5 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105">
+                                        <i class="fas fa-check mr-2"></i>Approve
+                                    </button>
+                                    <button
+                                        onclick="showRejectModal({{ document.id }})"
+                                        class="inline-flex items-center px-5 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl hover:from-red-700 hover:to-red-800 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105">
+                                        <i class="fas fa-times mr-2"></i>Reject
+                                    </button>
+                                </div>
                                 {% endif %}
                             </div>
-                        </div>
-                        
-                        <div class="flex items-center space-x-2">
-                            <!-- View button -->
-                            <a href="{{ document.file.url }}" target="_blank" class="inline-flex items-center px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors text-sm">
-                                <i class="fas fa-external-link-alt mr-1"></i>View
-                            </a>
-                            
-                            <!-- Approve/Reject buttons (only show if not already reviewed) -->
-                            {% if document.status == 'uploaded' %}
-                            <div id="actions-{{ document.id }}" class="flex space-x-2">
-                                <button 
-                                    onclick="moderateDocument({{ document.id }}, 'approve')"
-                                    class="inline-flex items-center px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm">
-                                    <i class="fas fa-check mr-1"></i>Approve
-                                </button>
-                                <button 
-                                    onclick="showRejectModal({{ document.id }})"
-                                    class="inline-flex items-center px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm">
-                                    <i class="fas fa-times mr-1"></i>Reject
-                                </button>
-                            </div>
-                            {% endif %}
                         </div>
                     </div>
                     {% endfor %}
                 </div>
                 {% else %}
-                <div class="text-center py-8 bg-gray-50 rounded-lg">
-                    <i class="fas fa-file text-gray-300 text-4xl mb-2"></i>
-                    <p class="text-gray-500">No documents uploaded</p>
+                <div class="text-center py-16 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border-2 border-dashed border-gray-300">
+                    <div class="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-file text-gray-400 text-3xl"></i>
+                    </div>
+                    <p class="text-gray-500 font-medium">No documents uploaded</p>
                 </div>
                 {% endif %}
             </div>
         </div>
 
         <!-- Sidebar -->
-        <div class="space-y-6">
+        <div class="space-y-8 animate-slide-right">
             <!-- Owner Information -->
-            <div class="bg-white rounded-xl shadow-lg p-6">
-                <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                    <i class="fas fa-user text-indigo-600 mr-2"></i>Owner Information
-                </h2>
-                <div class="space-y-3">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-500 mb-1">Name</label>
-                        <p class="text-gray-900">{{ listing.owner_profile.user.get_full_name|default:listing.owner_profile.user.username }}</p>
+            <div class="card-hover bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+                <div class="flex items-center mb-6">
+                    <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center mr-4">
+                        <i class="fas fa-user text-white text-xl"></i>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-500 mb-1">Email</label>
-                        <div class="flex items-center justify-between">
-                            <p class="text-gray-900">{{ listing.owner_profile.user.email }}</p>
+                    <h2 class="text-2xl font-bold text-gray-900">Owner Info</h2>
+                </div>
+
+                <div class="space-y-5">
+                    <div class="p-4 bg-gradient-to-br from-gray-50 to-slate-50 rounded-xl border border-gray-200">
+                        <label class="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">Name</label>
+                        <p class="text-gray-900 font-semibold">{{ listing.owner_profile.user.get_full_name|default:listing.owner_profile.user.username }}</p>
+                    </div>
+
+                    <div class="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="block text-xs font-bold text-blue-600 uppercase tracking-wider flex items-center">
+                                <i class="fas fa-envelope mr-2"></i>Email
+                            </label>
                             {% if owner_verification.email_verified %}
-                            <span class="text-green-600"><i class="fas fa-check-circle"></i></span>
+                            <span class="px-3 py-1 bg-green-500 text-white rounded-full text-xs font-bold shadow-sm">
+                                <i class="fas fa-check-circle"></i> Verified
+                            </span>
                             {% else %}
-                            <span class="text-gray-400"><i class="fas fa-times-circle"></i></span>
+                            <span class="px-3 py-1 bg-gray-300 text-gray-600 rounded-full text-xs font-bold">
+                                <i class="fas fa-times-circle"></i> Not Verified
+                            </span>
                             {% endif %}
                         </div>
+                        <p class="text-gray-900 font-medium">{{ listing.owner_profile.user.email }}</p>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-500 mb-1">Phone</label>
-                        <div class="flex items-center justify-between">
-                            <p class="text-gray-900">{{ listing.owner_profile.phone_number|default:"Not provided" }}</p>
+
+                    <div class="p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="block text-xs font-bold text-green-600 uppercase tracking-wider flex items-center">
+                                <i class="fas fa-phone mr-2"></i>Phone
+                            </label>
                             {% if owner_verification.phone_verified %}
-                            <span class="text-green-600"><i class="fas fa-check-circle"></i></span>
+                            <span class="px-3 py-1 bg-green-500 text-white rounded-full text-xs font-bold shadow-sm">
+                                <i class="fas fa-check-circle"></i> Verified
+                            </span>
                             {% else %}
-                            <span class="text-gray-400"><i class="fas fa-times-circle"></i></span>
+                            <span class="px-3 py-1 bg-gray-300 text-gray-600 rounded-full text-xs font-bold">
+                                <i class="fas fa-times-circle"></i> Not Verified
+                            </span>
                             {% endif %}
                         </div>
+                        <p class="text-gray-900 font-medium">{{ listing.owner_profile.phone_number|default:"Not provided" }}</p>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-500 mb-1">Identity Status</label>
-                        <div class="flex items-center justify-between">
-                            <p class="text-gray-900">{{ owner_verification.identity_status }}</p>
+
+                    <div class="p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-200">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="block text-xs font-bold text-purple-600 uppercase tracking-wider flex items-center">
+                                <i class="fas fa-id-card mr-2"></i>Identity Status
+                            </label>
                             {% if owner_verification.identity_verified %}
-                            <span class="text-green-600"><i class="fas fa-check-circle"></i></span>
+                            <span class="px-3 py-1 bg-green-500 text-white rounded-full text-xs font-bold shadow-sm">
+                                <i class="fas fa-check-circle"></i> Approved
+                            </span>
                             {% else %}
-                            <span class="text-gray-400"><i class="fas fa-times-circle"></i></span>
+                            <span class="px-3 py-1 bg-gray-300 text-gray-600 rounded-full text-xs font-bold">
+                                <i class="fas fa-times-circle"></i> Not Approved
+                            </span>
                             {% endif %}
                         </div>
+                        <p class="text-gray-900 font-medium capitalize">{{ owner_verification.identity_status }}</p>
                     </div>
+
                     {% if listing.owner_profile.id_document %}
-                    <div class="pt-3 border-t border-gray-200">
-                        <a href="{{ listing.owner_profile.id_document.url }}" target="_blank" class="inline-flex items-center text-indigo-600 hover:text-indigo-700 font-medium text-sm">
-                            <i class="fas fa-id-card mr-2"></i>View Owner ID Document
+                    <div class="pt-4 border-t-2 border-gray-200">
+                        <a href="{{ listing.owner_profile.id_document.url }}" target="_blank" class="group inline-flex items-center px-5 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl w-full justify-center">
+                            <i class="fas fa-id-card mr-3 group-hover:scale-110 transition-transform"></i>
+                            <span>View ID Document</span>
                         </a>
                     </div>
                     {% endif %}
@@ -237,55 +402,59 @@
             </div>
 
             <!-- Prerequisites Check -->
-            <div class="bg-white rounded-xl shadow-lg p-6">
-                <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                    <i class="fas fa-clipboard-check text-indigo-600 mr-2"></i>Prerequisites
-                </h2>
-                <div class="space-y-3">
-                    <div class="flex items-start space-x-3">
+            <div class="card-hover bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+                <div class="flex items-center mb-6">
+                    <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center mr-4">
+                        <i class="fas fa-clipboard-check text-white text-xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-900">Prerequisites</h2>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="flex items-start space-x-4 p-5 {% if prerequisites.owner_verified %}bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200{% else %}bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-200{% endif %} rounded-xl">
                         {% if prerequisites.owner_verified %}
-                        <i class="fas fa-check-circle text-green-600 mt-1"></i>
+                        <i class="fas fa-check-circle text-green-600 text-2xl mt-1"></i>
                         <div>
-                            <p class="font-medium text-green-900">Owner Verified</p>
-                            <p class="text-sm text-green-700">Identity approved{% if owner_verification.email_verified %} and email verified{% elif owner_verification.phone_verified %} and phone verified{% endif %}</p>
+                            <p class="font-bold text-green-900 text-lg">Owner Verified</p>
+                            <p class="text-sm text-green-700 mt-1">Identity approved{% if owner_verification.email_verified %} and email verified{% elif owner_verification.phone_verified %} and phone verified{% endif %}</p>
                         </div>
                         {% else %}
-                        <i class="fas fa-exclamation-circle text-yellow-600 mt-1"></i>
+                        <i class="fas fa-exclamation-circle text-yellow-600 text-2xl mt-1"></i>
                         <div>
-                            <p class="font-medium text-yellow-900">Owner Not Verified</p>
-                            <p class="text-sm text-yellow-700">{{ prerequisites.owner_issues|join:", " }}</p>
+                            <p class="font-bold text-yellow-900 text-lg">Owner Not Verified</p>
+                            <p class="text-sm text-yellow-700 mt-1">{{ prerequisites.owner_issues|join:", " }}</p>
                         </div>
                         {% endif %}
                     </div>
 
-                    <div class="flex items-start space-x-3">
+                    <div class="flex items-start space-x-4 p-5 {% if prerequisites.has_photos %}bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200{% else %}bg-gradient-to-br from-red-50 to-pink-50 border-2 border-red-200{% endif %} rounded-xl">
                         {% if prerequisites.has_photos %}
-                        <i class="fas fa-check-circle text-green-600 mt-1"></i>
+                        <i class="fas fa-check-circle text-green-600 text-2xl mt-1"></i>
                         <div>
-                            <p class="font-medium text-green-900">Photos Uploaded</p>
-                            <p class="text-sm text-green-700">{{ listing.photos.all|length }} photo(s)</p>
+                            <p class="font-bold text-green-900 text-lg">Photos Uploaded</p>
+                            <p class="text-sm text-green-700 mt-1">{{ listing.photos.all|length }} photo(s) available</p>
                         </div>
                         {% else %}
-                        <i class="fas fa-exclamation-circle text-red-600 mt-1"></i>
+                        <i class="fas fa-exclamation-circle text-red-600 text-2xl mt-1"></i>
                         <div>
-                            <p class="font-medium text-red-900">No Photos</p>
-                            <p class="text-sm text-red-700">At least one photo required</p>
+                            <p class="font-bold text-red-900 text-lg">No Photos</p>
+                            <p class="text-sm text-red-700 mt-1">At least one photo required</p>
                         </div>
                         {% endif %}
                     </div>
 
-                    <div class="flex items-start space-x-3">
+                    <div class="flex items-start space-x-4 p-5 {% if prerequisites.has_documents %}bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200{% else %}bg-gradient-to-br from-red-50 to-pink-50 border-2 border-red-200{% endif %} rounded-xl">
                         {% if prerequisites.has_documents %}
-                        <i class="fas fa-check-circle text-green-600 mt-1"></i>
+                        <i class="fas fa-check-circle text-green-600 text-2xl mt-1"></i>
                         <div>
-                            <p class="font-medium text-green-900">Documents Uploaded</p>
-                            <p class="text-sm text-green-700">{{ listing.documents.all|length }} document(s)</p>
+                            <p class="font-bold text-green-900 text-lg">Documents Uploaded</p>
+                            <p class="text-sm text-green-700 mt-1">{{ listing.documents.all|length }} document(s) available</p>
                         </div>
                         {% else %}
-                        <i class="fas fa-exclamation-circle text-red-600 mt-1"></i>
+                        <i class="fas fa-exclamation-circle text-red-600 text-2xl mt-1"></i>
                         <div>
-                            <p class="font-medium text-red-900">No Documents</p>
-                            <p class="text-sm text-red-700">At least one document required</p>
+                            <p class="font-bold text-red-900 text-lg">No Documents</p>
+                            <p class="text-sm text-red-700 mt-1">At least one document required</p>
                         </div>
                         {% endif %}
                     </div>
@@ -293,38 +462,54 @@
             </div>
 
             <!-- Review Actions -->
-            <div class="bg-white rounded-xl shadow-lg p-6">
-                <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                    <i class="fas fa-gavel text-indigo-600 mr-2"></i>Review Actions
-                </h2>
-                <div class="space-y-3">
-                    <a href="{% url 'listings:review_approve' listing.pk %}" class="block w-full px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 shadow-md transition-all font-medium text-center">
-                        <i class="fas fa-check mr-2"></i>Approve Listing
+            <div class="card-hover gradient-border rounded-2xl shadow-2xl p-8">
+                <div class="flex items-center mb-6">
+                    <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center mr-4">
+                        <i class="fas fa-gavel text-white text-xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-900">Review Actions</h2>
+                </div>
+
+                <div class="space-y-4">
+                    <a href="{% url 'listings:review_approve' listing.pk %}" class="group block w-full px-8 py-5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl hover:from-green-700 hover:to-green-800 shadow-xl hover:shadow-2xl transition-all duration-300 font-bold text-center text-lg transform hover:scale-105">
+                        <i class="fas fa-check-circle mr-3 group-hover:scale-110 transition-transform"></i>
+                        <span>Approve Listing</span>
                     </a>
-                    <a href="{% url 'listings:review_reject' listing.pk %}" class="block w-full px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 shadow-md transition-all font-medium text-center">
-                        <i class="fas fa-times mr-2"></i>Reject Listing
+                    <a href="{% url 'listings:review_reject' listing.pk %}" class="group block w-full px-8 py-5 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl hover:from-red-700 hover:to-red-800 shadow-xl hover:shadow-2xl transition-all duration-300 font-bold text-center text-lg transform hover:scale-105">
+                        <i class="fas fa-times-circle mr-3 group-hover:scale-110 transition-transform"></i>
+                        <span>Reject Listing</span>
                     </a>
                 </div>
             </div>
 
             <!-- Timeline -->
-            <div class="bg-white rounded-xl shadow-lg p-6">
-                <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                    <i class="fas fa-clock text-indigo-600 mr-2"></i>Timeline
-                </h2>
-                <div class="space-y-3 text-sm">
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Created:</span>
-                        <span class="text-gray-900 font-medium">{{ listing.created_at|date:"M d, Y g:i A" }}</span>
+            <div class="card-hover bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+                <div class="flex items-center mb-6">
+                    <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center mr-4">
+                        <i class="fas fa-clock text-white text-xl"></i>
                     </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Last Updated:</span>
-                        <span class="text-gray-900 font-medium">{{ listing.updated_at|date:"M d, Y g:i A" }}</span>
+                    <h2 class="text-2xl font-bold text-gray-900">Timeline</h2>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+                        <span class="text-gray-700 font-semibold flex items-center">
+                            <i class="fas fa-plus-circle text-blue-600 mr-3"></i>Created
+                        </span>
+                        <span class="text-gray-900 font-bold">{{ listing.created_at|date:"M d, Y g:i A" }}</span>
+                    </div>
+                    <div class="flex items-center justify-between p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-100">
+                        <span class="text-gray-700 font-semibold flex items-center">
+                            <i class="fas fa-edit text-purple-600 mr-3"></i>Updated
+                        </span>
+                        <span class="text-gray-900 font-bold">{{ listing.updated_at|date:"M d, Y g:i A" }}</span>
                     </div>
                     {% if listing.verified_at %}
-                    <div class="flex justify-between">
-                        <span class="text-gray-600">Verified:</span>
-                        <span class="text-gray-900 font-medium">{{ listing.verified_at|date:"M d, Y g:i A" }}</span>
+                    <div class="flex items-center justify-between p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-100">
+                        <span class="text-gray-700 font-semibold flex items-center">
+                            <i class="fas fa-check-circle text-green-600 mr-3"></i>Verified
+                        </span>
+                        <span class="text-gray-900 font-bold">{{ listing.verified_at|date:"M d, Y g:i A" }}</span>
                     </div>
                     {% endif %}
                 </div>
@@ -334,32 +519,38 @@
 </div>
 
 <!-- Rejection Modal -->
-<div id="rejectModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
-        <h3 class="text-xl font-bold mb-4">Reject Document</h3>
+<div id="rejectModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade">
+    <div class="bg-white rounded-2xl p-8 max-w-lg w-full shadow-2xl transform transition-all">
+        <div class="flex items-center mb-6">
+            <div class="w-14 h-14 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center mr-4">
+                <i class="fas fa-times-circle text-white text-2xl"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900">Reject Document</h3>
+        </div>
+
         <form id="rejectForm">
             <input type="hidden" id="rejectDocumentId" />
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-2">
+            <div class="mb-6">
+                <label class="block text-sm font-bold text-gray-700 mb-3 uppercase tracking-wider">
                     Reason for rejection (required):
                 </label>
-                <textarea 
-                    id="rejectComment" 
-                    rows="4" 
-                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+                <textarea
+                    id="rejectComment"
+                    rows="5"
+                    class="w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-red-100 focus:border-red-400 transition-all duration-200 hover:border-gray-300"
                     placeholder="e.g., Document is unclear, missing information, expired..."
                     required></textarea>
             </div>
-            <div class="flex space-x-3">
-                <button 
+            <div class="flex space-x-4">
+                <button
                     type="button"
                     onclick="closeRejectModal()"
-                    class="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                    class="flex-1 px-6 py-4 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-all duration-300 font-semibold shadow-md hover:shadow-lg">
                     Cancel
                 </button>
-                <button 
+                <button
                     type="submit"
-                    class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                    class="flex-1 px-6 py-4 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl hover:from-red-700 hover:to-red-800 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl">
                     Reject Document
                 </button>
             </div>
@@ -371,7 +562,7 @@
 function moderateDocument(documentId, action) {
     // Get comment from modal if it's a reject action
     const comment = action === 'reject' ? document.getElementById('rejectComment').value.trim() : '';
-    
+
     // Get CSRF token from cookie
     function getCookie(name) {
         let cookieValue = null;
@@ -387,28 +578,28 @@ function moderateDocument(documentId, action) {
         }
         return cookieValue;
     }
-    
+
     const csrfToken = getCookie('csrftoken');
-    
+
     // Prepare form data
     const formData = new FormData();
     formData.append('action', action);
     if (comment) formData.append('comment', comment);
-    
+
     // Show loading state
     const statusBadge = document.getElementById(`status-${documentId}`);
     const originalText = statusBadge.textContent;
     const originalClass = statusBadge.className;
-    statusBadge.textContent = 'Processing...';
-    statusBadge.className = 'inline-block mt-2 px-3 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800';
-    
+    statusBadge.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+    statusBadge.className = 'inline-flex items-center mt-3 px-4 py-2 text-xs font-bold rounded-xl shadow-sm bg-gradient-to-r from-gray-400 to-gray-500 text-white';
+
     // Disable buttons
     const actionsDiv = document.getElementById(`actions-${documentId}`);
     if (actionsDiv) {
         const buttons = actionsDiv.querySelectorAll('button');
         buttons.forEach(btn => btn.disabled = true);
     }
-    
+
     // Make AJAX request
     fetch(`/staff/documents/${documentId}/moderate/`, {
         method: 'POST',
@@ -421,43 +612,43 @@ function moderateDocument(documentId, action) {
     .then(data => {
         if (data.success) {
             // Update status badge
-            statusBadge.textContent = data.status_display;
+            const icon = data.status === 'approved' ? 'fa-check-circle' : 'fa-times-circle';
+            statusBadge.innerHTML = `<i class="fas ${icon} mr-2"></i>${data.status_display}`;
             if (data.status === 'approved') {
-                statusBadge.className = 'inline-block mt-2 px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800';
+                statusBadge.className = 'inline-flex items-center mt-3 px-4 py-2 text-xs font-bold rounded-xl shadow-sm bg-gradient-to-r from-green-500 to-green-600 text-white';
             } else {
-                statusBadge.className = 'inline-block mt-2 px-3 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800';
+                statusBadge.className = 'inline-flex items-center mt-3 px-4 py-2 text-xs font-bold rounded-xl shadow-sm bg-gradient-to-r from-red-500 to-red-600 text-white';
             }
-            
+
             // Hide approve/reject buttons
             if (actionsDiv) actionsDiv.remove();
-            
+
             // Show reviewer comment if rejected
             if (data.status === 'needs_resubmission' && data.comment) {
                 // Remove existing comment if any
                 const existingComment = document.getElementById(`comment-${documentId}`);
                 if (existingComment) existingComment.remove();
-                
+
                 const commentDiv = document.createElement('p');
                 commentDiv.id = `comment-${documentId}`;
-                commentDiv.className = 'text-xs text-red-600 mt-1';
-                commentDiv.innerHTML = `<i class="fas fa-comment"></i> ${data.comment}`;
+                commentDiv.className = 'text-sm text-red-700 mt-3 p-3 bg-red-50 rounded-lg border border-red-200';
+                commentDiv.innerHTML = `<i class="fas fa-comment mr-2"></i>${data.comment}`;
                 statusBadge.parentElement.appendChild(commentDiv);
             }
-            
-            // Close rejection modal if it was a reject action (must happen after all UI updates)
+
+            // Close rejection modal if it was a reject action
             if (action === 'reject') {
-                // Small delay to ensure UI updates are visible before closing modal
                 setTimeout(() => {
                     closeRejectModal();
                 }, 100);
             }
-            
+
         } else {
             alert(`Error: ${data.error}`);
             // Revert status badge
             statusBadge.textContent = originalText;
             statusBadge.className = originalClass;
-            
+
             // Re-enable buttons
             if (actionsDiv) {
                 const buttons = actionsDiv.querySelectorAll('button');
@@ -471,7 +662,7 @@ function moderateDocument(documentId, action) {
         // Revert status badge
         statusBadge.textContent = originalText;
         statusBadge.className = originalClass;
-        
+
         // Re-enable buttons
         if (actionsDiv) {
             const buttons = actionsDiv.querySelectorAll('button');
@@ -496,12 +687,12 @@ document.getElementById('rejectForm').addEventListener('submit', function(e) {
     e.preventDefault();
     const documentId = document.getElementById('rejectDocumentId').value;
     const comment = document.getElementById('rejectComment').value.trim();
-    
+
     if (!comment) {
         alert('Please provide a reason for rejection.');
         return;
     }
-    
+
     // Call moderateDocument - it will close the modal on success
     moderateDocument(documentId, 'reject');
 });

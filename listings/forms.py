@@ -142,14 +142,9 @@ class ListingForm(forms.ModelForm):
             "currency",
             "service_charge",
             "is_negotiable",
-            "amenities",
         ]
         widgets = {
             "description": forms.Textarea(attrs={"rows": 5}),
-            "amenities": forms.Textarea(attrs={
-                "rows": 3,
-                "placeholder": 'Optional: Enter amenities as JSON, e.g. {"pool": true, "gym": true, "parking": true}'
-            }),
         }
 
     def clean_price(self):

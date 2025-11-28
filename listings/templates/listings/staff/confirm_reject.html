@@ -3,84 +3,210 @@
 {% block title %}Reject Listing - Heimly{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto">
-    <div class="bg-white rounded-xl shadow-lg p-8">
-        <div class="text-center mb-6">
-            <div class="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
-                <i class="fas fa-times text-red-600 text-2xl"></i>
+<style>
+    @keyframes scaleIn {
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    @keyframes pulse-red {
+        0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+        50% {
+            opacity: 0.8;
+            transform: scale(1.05);
+        }
+    }
+
+    .animate-scale {
+        animation: scaleIn 0.4s ease-out;
+    }
+
+    .pulse-icon {
+        animation: pulse-red 2s ease-in-out infinite;
+    }
+</style>
+
+<div class="max-w-3xl mx-auto animate-scale">
+    <!-- Decorative Background -->
+    <div class="absolute inset-0 -z-10 overflow-hidden">
+        <div class="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-red-100/40 to-pink-100/40 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-orange-100/40 to-red-100/40 rounded-full blur-3xl"></div>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-2xl p-10 border border-gray-100 relative overflow-hidden">
+        <!-- Decorative element -->
+        <div class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-red-100/30 to-pink-100/30 rounded-full -mr-32 -mt-32"></div>
+
+        <!-- Header -->
+        <div class="text-center mb-8 relative">
+            <div class="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-red-500 to-red-600 rounded-full mb-6 shadow-2xl pulse-icon">
+                <i class="fas fa-times text-white text-4xl"></i>
             </div>
-            <h1 class="text-3xl font-bold text-gray-900 mb-2">Reject Listing</h1>
-            <p class="text-gray-600">Provide a reason for rejecting this property listing</p>
+            <h1 class="text-4xl font-extrabold bg-gradient-to-r from-gray-900 via-red-900 to-pink-900 bg-clip-text text-transparent mb-3">
+                Reject Listing
+            </h1>
+            <p class="text-lg text-gray-600">Provide a reason for rejecting this property listing</p>
         </div>
 
-        <div class="bg-gray-50 rounded-lg p-6 mb-6">
-            <h2 class="font-semibold text-gray-900 mb-2">{{ listing.title }}</h2>
-            <div class="text-sm text-gray-600 space-y-1">
-                <p><i class="fas fa-map-marker-alt mr-2"></i>{{ listing.city }}, {{ listing.state }}</p>
-                <p><i class="fas fa-tag mr-2"></i>{{ listing.currency }} {{ listing.price|floatformat:0 }}</p>
-                <p><i class="fas fa-user mr-2"></i>{{ listing.owner_profile.user.get_full_name|default:listing.owner_profile.user.username }}</p>
+        <!-- Listing Info Card -->
+        <div class="bg-gradient-to-br from-red-50 to-pink-50 rounded-xl p-6 mb-8 border-2 border-red-200 relative">
+            <div class="absolute top-4 right-4">
+                <div class="px-4 py-2 bg-red-600 text-white rounded-lg text-xs font-bold shadow-md">
+                    NEEDS REVISION
+                </div>
+            </div>
+            <h2 class="font-bold text-gray-900 mb-4 text-xl">{{ listing.title }}</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
+                <div class="flex items-center p-3 bg-white rounded-lg border border-red-100">
+                    <div class="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-lg flex items-center justify-center mr-3">
+                        <i class="fas fa-map-marker-alt text-white"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Location</p>
+                        <p class="font-semibold text-gray-900">{{ listing.city }}, {{ listing.state }}</p>
+                    </div>
+                </div>
+                <div class="flex items-center p-3 bg-white rounded-lg border border-red-100">
+                    <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center mr-3">
+                        <i class="fas fa-dollar-sign text-white"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Price</p>
+                        <p class="font-bold text-gray-900">{{ listing.currency }} {{ listing.price|floatformat:0 }}</p>
+                    </div>
+                </div>
+                <div class="flex items-center p-3 bg-white rounded-lg border border-red-100 md:col-span-2">
+                    <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center mr-3">
+                        <i class="fas fa-user text-white"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Owner</p>
+                        <p class="font-semibold text-gray-900">{{ listing.owner_profile.user.get_full_name|default:listing.owner_profile.user.username }}</p>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <form method="post" class="space-y-6">
+        <!-- Form -->
+        <form method="post" class="space-y-8">
             {% csrf_token %}
 
+            <!-- Reason Input -->
             <div>
-                <label for="reason" class="block text-sm font-medium text-gray-700 mb-2">
-                    Rejection Reason <span class="text-red-500">*</span>
+                <label for="reason" class="block text-sm font-bold text-gray-700 mb-3 uppercase tracking-wider flex items-center">
+                    <i class="fas fa-exclamation-circle text-red-600 mr-2"></i>
+                    Rejection Reason <span class="text-red-500 ml-1">*</span>
                 </label>
                 <textarea
                     id="reason"
                     name="reason"
                     rows="6"
                     required
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
-                    placeholder="Please explain why this listing is being rejected. Be specific and helpful - the owner will see this message."
+                    class="w-full px-5 py-4 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-red-100 focus:border-red-400 transition-all duration-200 hover:border-gray-300"
+                    placeholder="Please explain why this listing is being rejected. Be specific and helpful - the owner will see this message and use it to improve their listing."
                 ></textarea>
-                <p class="text-sm text-gray-500 mt-1">This reason will be sent to the owner to help them improve their listing.</p>
+                <p class="text-sm text-red-600 mt-2 flex items-center font-medium">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    This reason will be sent to the owner to help them improve their listing.
+                </p>
             </div>
 
-            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-                <div class="flex items-start space-x-3">
-                    <i class="fas fa-exclamation-triangle text-red-600 mt-0.5"></i>
-                    <div class="text-sm text-red-800">
-                        <p class="font-medium mb-1">What happens when you reject:</p>
-                        <ul class="list-disc list-inside space-y-1">
-                            <li>Listing status will be set to "Rejected"</li>
-                            <li>Listing will remain private (not visible)</li>
-                            <li>Owner will be notified with your rejection reason</li>
-                            <li>Owner can revise and resubmit the listing</li>
-                            <li>Action will be logged in the audit trail</li>
+            <!-- Warning Box -->
+            <div class="bg-gradient-to-br from-red-50 to-pink-50 border-2 border-red-200 rounded-xl p-6">
+                <div class="flex items-start space-x-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-exclamation-triangle text-white text-xl"></i>
+                    </div>
+                    <div class="text-sm text-red-900">
+                        <p class="font-bold mb-3 text-base">What happens when you reject:</p>
+                        <ul class="space-y-2">
+                            <li class="flex items-start">
+                                <i class="fas fa-times-circle text-red-600 mr-3 mt-1"></i>
+                                <span>Listing status will be set to <span class="font-semibold">"Rejected"</span></span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-times-circle text-red-600 mr-3 mt-1"></i>
+                                <span>Listing will remain <span class="font-semibold">private</span> (not visible publicly)</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-times-circle text-red-600 mr-3 mt-1"></i>
+                                <span>Owner will be <span class="font-semibold">notified with your rejection reason</span></span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-times-circle text-red-600 mr-3 mt-1"></i>
+                                <span>Owner can <span class="font-semibold">revise and resubmit</span> the listing</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-times-circle text-red-600 mr-3 mt-1"></i>
+                                <span>Action will be <span class="font-semibold">logged in the audit trail</span></span>
+                            </li>
                         </ul>
                     </div>
                 </div>
             </div>
 
-            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <div class="flex items-start space-x-3">
-                    <i class="fas fa-lightbulb text-yellow-600 mt-0.5"></i>
-                    <div class="text-sm text-yellow-800">
-                        <p class="font-medium mb-1">Common rejection reasons:</p>
-                        <ul class="list-disc list-inside space-y-1">
-                            <li>Incomplete or missing property information</li>
-                            <li>Photos are unclear or insufficient</li>
-                            <li>Missing required documents (ownership, permits)</li>
-                            <li>Property details appear inaccurate or misleading</li>
-                            <li>Listing violates platform policies</li>
+            <!-- Tips Box -->
+            <div class="bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-xl p-6">
+                <div class="flex items-start space-x-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-lightbulb text-white text-xl"></i>
+                    </div>
+                    <div class="text-sm text-yellow-900">
+                        <p class="font-bold mb-3 text-base">Common rejection reasons:</p>
+                        <ul class="space-y-2">
+                            <li class="flex items-start">
+                                <i class="fas fa-chevron-right text-yellow-600 mr-3 mt-1"></i>
+                                <span>Incomplete or missing property information</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-chevron-right text-yellow-600 mr-3 mt-1"></i>
+                                <span>Photos are unclear, low quality, or insufficient</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-chevron-right text-yellow-600 mr-3 mt-1"></i>
+                                <span>Missing required documents (ownership proof, permits)</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-chevron-right text-yellow-600 mr-3 mt-1"></i>
+                                <span>Property details appear inaccurate or misleading</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fas fa-chevron-right text-yellow-600 mr-3 mt-1"></i>
+                                <span>Listing violates platform policies or guidelines</span>
+                            </li>
                         </ul>
                     </div>
                 </div>
             </div>
 
-            <div class="flex items-center justify-end space-x-4 pt-4 border-t border-gray-200">
-                <a href="{% url 'listings:review_detail' listing.pk %}" class="px-6 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium">
-                    Cancel
+            <!-- Action Buttons -->
+            <div class="flex items-center justify-end space-x-4 pt-6 border-t-2 border-gray-200">
+                <a href="{% url 'listings:review_detail' listing.pk %}" class="px-8 py-4 border-2 border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition-all duration-300 font-semibold shadow-md hover:shadow-lg transform hover:scale-105">
+                    <i class="fas fa-times mr-2"></i>Cancel
                 </a>
-                <button type="submit" class="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 shadow-md transition-all font-medium">
-                    <i class="fas fa-times mr-2"></i>Confirm Rejection
+                <button type="submit" class="group inline-flex items-center px-8 py-4 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl hover:from-red-700 hover:to-red-800 shadow-xl hover:shadow-2xl transition-all duration-300 font-bold transform hover:scale-105">
+                    <i class="fas fa-times-circle mr-3 group-hover:scale-110 transition-transform"></i>
+                    <span>Confirm Rejection</span>
                 </button>
             </div>
         </form>
+    </div>
+
+    <!-- Back Link -->
+    <div class="text-center mt-8">
+        <a href="{% url 'listings:review_queue' %}" class="inline-flex items-center text-gray-600 hover:text-indigo-700 font-semibold px-6 py-3 bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300">
+            <i class="fas fa-arrow-left mr-2"></i>
+            <span>Back to Review Queue</span>
+        </a>
     </div>
 </div>
 {% endblock %}

@@ -310,6 +310,11 @@ class Listing(models.Model):
                 counter += 1
         super().save(*args, **kwargs)
 
+    @property
+    def primary_photo(self):
+        """Get the primary photo for this listing."""
+        return self.photos.filter(is_primary=True).first()
+
 
 class ListingPhoto(models.Model):
     """Photo for property listing."""

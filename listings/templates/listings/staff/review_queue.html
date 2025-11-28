@@ -3,27 +3,118 @@
 {% block title %}Staff Review Queue - Heimly{% endblock %}
 
 {% block content %}
-<div>
+<style>
+    @keyframes slideInDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes scaleIn {
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    .animate-slide-down {
+        animation: slideInDown 0.5s ease-out;
+    }
+
+    .animate-fade-up {
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    .animate-scale {
+        animation: scaleIn 0.4s ease-out;
+    }
+
+    .stat-card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    .listing-row {
+        transition: all 0.2s ease;
+    }
+
+    .listing-row:hover {
+        transform: translateX(4px);
+        background: linear-gradient(90deg, #f9fafb 0%, #f3f4f6 100%);
+    }
+
+    .glass-morphism {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+</style>
+
+<div class="relative">
+    <!-- Decorative Background Elements -->
+    <div class="absolute inset-0 -z-10 overflow-hidden">
+        <div class="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-indigo-100/40 to-purple-100/40 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-blue-100/40 to-cyan-100/40 rounded-full blur-3xl"></div>
+    </div>
+
     <!-- Header -->
-    <div class="mb-8">
-        <div class="flex justify-between items-center mb-4">
+    <div class="mb-10 animate-slide-down">
+        <div class="flex justify-between items-center mb-6">
             <div>
-                <h1 class="text-4xl font-bold text-gray-900 mb-2">
-                    <i class="fas fa-tasks text-indigo-600 mr-3"></i>{% if view_all %}All Listings{% else %}Review Queue{% endif %}
-                </h1>
-                <p class="text-gray-600">{% if view_all %}View and manage all property listings{% else %}Review and approve property listings submitted by owners{% endif %}</p>
+                <div class="flex items-center space-x-4 mb-3">
+                    <div class="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+                        <i class="fas fa-tasks text-white text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-5xl font-extrabold bg-gradient-to-r from-gray-900 via-indigo-900 to-purple-900 bg-clip-text text-transparent">
+                            {% if view_all %}All Listings{% else %}Review Queue{% endif %}
+                        </h1>
+                        <p class="text-gray-500 text-lg mt-1">
+                            {% if view_all %}View and manage all property listings{% else %}Review and approve property listings submitted by owners{% endif %}
+                        </p>
+                    </div>
+                </div>
             </div>
-            <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-3">
                 {% if view_all %}
-                <a href="{% url 'listings:review_queue' %}" class="px-4 py-2 bg-yellow-100 text-yellow-800 rounded-lg font-semibold hover:bg-yellow-200 transition-colors">
-                    <i class="fas fa-clipboard-list mr-2"></i>Show Pending Only ({{ counts.pending_total }})
+                <a href="{% url 'listings:review_queue' %}" class="group relative px-6 py-3 bg-white border-2 border-yellow-200 text-yellow-700 rounded-xl font-semibold hover:border-yellow-300 transition-all duration-300 shadow-md hover:shadow-xl flex items-center space-x-2">
+                    <i class="fas fa-clipboard-list"></i>
+                    <span>Show Pending Only</span>
+                    <span class="ml-2 px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">{{ counts.pending_total }}</span>
                 </a>
                 {% else %}
-                <span class="px-4 py-2 bg-blue-100 text-blue-800 rounded-lg font-semibold">
-                    <i class="fas fa-clipboard-list mr-2"></i>{{ counts.pending_total }} Pending
-                </span>
-                <a href="?view=all" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors">
-                    <i class="fas fa-list mr-2"></i>View All ({{ counts.all_total }})
+                <div class="px-6 py-3 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 text-blue-700 rounded-xl font-semibold flex items-center space-x-2 shadow-md">
+                    <i class="fas fa-clipboard-list"></i>
+                    <span>{{ counts.pending_total }} Pending</span>
+                </div>
+                <a href="?view=all" class="group relative px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-2xl flex items-center space-x-2 transform hover:scale-105">
+                    <i class="fas fa-list"></i>
+                    <span>View All</span>
+                    <span class="ml-2 px-2 py-1 bg-white/20 text-white text-xs rounded-full">{{ counts.all_total }}</span>
                 </a>
                 {% endif %}
             </div>
@@ -32,98 +123,151 @@
 
     <!-- Stats Cards -->
     {% if view_all %}
-    <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
-        <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-lg p-6 border border-blue-200">
-            <div class="flex items-center justify-between mb-4">
-                <div class="bg-blue-500 rounded-lg p-3">
-                    <i class="fas fa-search text-white text-xl"></i>
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-12 animate-fade-up">
+        <div class="stat-card group relative overflow-hidden bg-white rounded-2xl shadow-xl p-6 border border-blue-100 hover:border-blue-300">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-blue-600/20 rounded-full -mr-16 -mt-16"></div>
+            <div class="relative">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                        <i class="fas fa-search text-white text-2xl"></i>
+                    </div>
+                    <div class="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-bold">ACTIVE</div>
                 </div>
+                <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">In Review</h3>
+                <p class="text-4xl font-black bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">{{ counts.in_review }}</p>
             </div>
-            <h3 class="text-sm font-medium text-gray-600 mb-1">In Review</h3>
-            <p class="text-3xl font-bold text-gray-900">{{ counts.in_review }}</p>
         </div>
-        <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl shadow-lg p-6 border border-yellow-200">
-            <div class="flex items-center justify-between mb-4">
-                <div class="bg-yellow-500 rounded-lg p-3">
-                    <i class="fas fa-clock text-white text-xl"></i>
+
+        <div class="stat-card group relative overflow-hidden bg-white rounded-2xl shadow-xl p-6 border border-yellow-100 hover:border-yellow-300">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-yellow-400/20 to-yellow-600/20 rounded-full -mr-16 -mt-16"></div>
+            <div class="relative">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-14 h-14 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                        <i class="fas fa-clock text-white text-2xl"></i>
+                    </div>
+                    <div class="px-3 py-1 bg-yellow-50 text-yellow-700 rounded-full text-xs font-bold">WAITING</div>
                 </div>
+                <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Pending</h3>
+                <p class="text-4xl font-black bg-gradient-to-r from-yellow-600 to-yellow-800 bg-clip-text text-transparent">{{ counts.pending_documents|add:counts.pending_identity }}</p>
             </div>
-            <h3 class="text-sm font-medium text-gray-600 mb-1">Pending</h3>
-            <p class="text-3xl font-bold text-gray-900">{{ counts.pending_documents|add:counts.pending_identity }}</p>
         </div>
-        <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl shadow-lg p-6 border border-green-200">
-            <div class="flex items-center justify-between mb-4">
-                <div class="bg-green-500 rounded-lg p-3">
-                    <i class="fas fa-check-circle text-white text-xl"></i>
+
+        <div class="stat-card group relative overflow-hidden bg-white rounded-2xl shadow-xl p-6 border border-green-100 hover:border-green-300">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-400/20 to-green-600/20 rounded-full -mr-16 -mt-16"></div>
+            <div class="relative">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                        <i class="fas fa-check-circle text-white text-2xl"></i>
+                    </div>
+                    <div class="px-3 py-1 bg-green-50 text-green-700 rounded-full text-xs font-bold">LIVE</div>
                 </div>
+                <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Verified</h3>
+                <p class="text-4xl font-black bg-gradient-to-r from-green-600 to-green-800 bg-clip-text text-transparent">{{ counts.verified }}</p>
             </div>
-            <h3 class="text-sm font-medium text-gray-600 mb-1">Verified</h3>
-            <p class="text-3xl font-bold text-green-700">{{ counts.verified }}</p>
         </div>
-        <div class="bg-gradient-to-br from-red-50 to-red-100 rounded-xl shadow-lg p-6 border border-red-200">
-            <div class="flex items-center justify-between mb-4">
-                <div class="bg-red-500 rounded-lg p-3">
-                    <i class="fas fa-times-circle text-white text-xl"></i>
+
+        <div class="stat-card group relative overflow-hidden bg-white rounded-2xl shadow-xl p-6 border border-red-100 hover:border-red-300">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-red-400/20 to-red-600/20 rounded-full -mr-16 -mt-16"></div>
+            <div class="relative">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-14 h-14 bg-gradient-to-br from-red-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                        <i class="fas fa-times-circle text-white text-2xl"></i>
+                    </div>
+                    <div class="px-3 py-1 bg-red-50 text-red-700 rounded-full text-xs font-bold">DENIED</div>
                 </div>
+                <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Rejected</h3>
+                <p class="text-4xl font-black bg-gradient-to-r from-red-600 to-red-800 bg-clip-text text-transparent">{{ counts.rejected }}</p>
             </div>
-            <h3 class="text-sm font-medium text-gray-600 mb-1">Rejected</h3>
-            <p class="text-3xl font-bold text-gray-900">{{ counts.rejected }}</p>
         </div>
-        <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl shadow-lg p-6 border border-gray-200">
-            <div class="flex items-center justify-between mb-4">
-                <div class="bg-gray-500 rounded-lg p-3">
-                    <i class="fas fa-file-alt text-white text-xl"></i>
+
+        <div class="stat-card group relative overflow-hidden bg-white rounded-2xl shadow-xl p-6 border border-gray-200 hover:border-gray-300">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-gray-400/20 to-gray-600/20 rounded-full -mr-16 -mt-16"></div>
+            <div class="relative">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-14 h-14 bg-gradient-to-br from-gray-500 to-gray-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                        <i class="fas fa-file-alt text-white text-2xl"></i>
+                    </div>
+                    <div class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-bold">DRAFT</div>
                 </div>
+                <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Draft</h3>
+                <p class="text-4xl font-black bg-gradient-to-r from-gray-600 to-gray-800 bg-clip-text text-transparent">{{ counts.draft }}</p>
             </div>
-            <h3 class="text-sm font-medium text-gray-600 mb-1">Draft</h3>
-            <p class="text-3xl font-bold text-gray-900">{{ counts.draft }}</p>
         </div>
     </div>
     {% else %}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-lg p-6 border border-blue-200">
-            <div class="flex items-center justify-between mb-4">
-                <div class="bg-blue-500 rounded-lg p-3">
-                    <i class="fas fa-search text-white text-xl"></i>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 animate-fade-up">
+        <div class="stat-card group relative overflow-hidden bg-white rounded-2xl shadow-xl p-8 border border-blue-100 hover:border-blue-300">
+            <div class="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-blue-400/20 to-blue-600/20 rounded-full -mr-20 -mt-20"></div>
+            <div class="relative">
+                <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-xl mb-6 group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-search text-white text-3xl"></i>
+                </div>
+                <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">In Review</h3>
+                <p class="text-5xl font-black bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">{{ counts.in_review }}</p>
+                <div class="mt-4 flex items-center text-blue-600 text-sm font-medium">
+                    <i class="fas fa-arrow-right mr-2"></i>
+                    <span>Active Submissions</span>
                 </div>
             </div>
-            <h3 class="text-sm font-medium text-gray-600 mb-1">In Review</h3>
-            <p class="text-4xl font-bold text-gray-900">{{ counts.in_review }}</p>
         </div>
-        <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl shadow-lg p-6 border border-yellow-200">
-            <div class="flex items-center justify-between mb-4">
-                <div class="bg-yellow-500 rounded-lg p-3">
-                    <i class="fas fa-file-alt text-white text-xl"></i>
+
+        <div class="stat-card group relative overflow-hidden bg-white rounded-2xl shadow-xl p-8 border border-yellow-100 hover:border-yellow-300">
+            <div class="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-yellow-400/20 to-yellow-600/20 rounded-full -mr-20 -mt-20"></div>
+            <div class="relative">
+                <div class="w-16 h-16 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-2xl flex items-center justify-center shadow-xl mb-6 group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-file-alt text-white text-3xl"></i>
+                </div>
+                <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Pending Documents</h3>
+                <p class="text-5xl font-black bg-gradient-to-r from-yellow-600 to-yellow-800 bg-clip-text text-transparent">{{ counts.pending_documents }}</p>
+                <div class="mt-4 flex items-center text-yellow-600 text-sm font-medium">
+                    <i class="fas fa-clock mr-2"></i>
+                    <span>Awaiting Upload</span>
                 </div>
             </div>
-            <h3 class="text-sm font-medium text-gray-600 mb-1">Pending Documents</h3>
-            <p class="text-4xl font-bold text-gray-900">{{ counts.pending_documents }}</p>
         </div>
-        <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl shadow-lg p-6 border border-purple-200">
-            <div class="flex items-center justify-between mb-4">
-                <div class="bg-purple-500 rounded-lg p-3">
-                    <i class="fas fa-id-card text-white text-xl"></i>
+
+        <div class="stat-card group relative overflow-hidden bg-white rounded-2xl shadow-xl p-8 border border-purple-100 hover:border-purple-300">
+            <div class="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-400/20 to-purple-600/20 rounded-full -mr-20 -mt-20"></div>
+            <div class="relative">
+                <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl mb-6 group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-id-card text-white text-3xl"></i>
+                </div>
+                <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Pending Identity</h3>
+                <p class="text-5xl font-black bg-gradient-to-r from-purple-600 to-purple-800 bg-clip-text text-transparent">{{ counts.pending_identity }}</p>
+                <div class="mt-4 flex items-center text-purple-600 text-sm font-medium">
+                    <i class="fas fa-user-check mr-2"></i>
+                    <span>Owner Verification</span>
                 </div>
             </div>
-            <h3 class="text-sm font-medium text-gray-600 mb-1">Pending Identity</h3>
-            <p class="text-4xl font-bold text-gray-900">{{ counts.pending_identity }}</p>
         </div>
     </div>
     {% endif %}
 
     <!-- Filters & Search -->
-    <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
-        <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="bg-white rounded-2xl shadow-xl p-8 mb-8 border border-gray-100 animate-scale">
+        <div class="flex items-center mb-6">
+            <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center mr-3">
+                <i class="fas fa-filter text-white"></i>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900">Filters & Search</h3>
+        </div>
+        <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-6">
             {% if view_all %}
             <input type="hidden" name="view" value="all">
             {% endif %}
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
-                <input type="text" name="search" value="{{ current_search }}" placeholder="Search listings..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            <div class="relative">
+                <label class="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                    <i class="fas fa-search text-indigo-600 mr-2"></i>
+                    Search
+                </label>
+                <input type="text" name="search" value="{{ current_search }}" placeholder="Search by title or description..." class="w-full px-5 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-400 transition-all duration-200 hover:border-gray-300">
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                <select name="status" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            <div class="relative">
+                <label class="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                    <i class="fas fa-tag text-indigo-600 mr-2"></i>
+                    Status
+                </label>
+                <select name="status" class="w-full px-5 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-400 transition-all duration-200 hover:border-gray-300 appearance-none bg-white cursor-pointer">
                     <option value="">All Statuses</option>
                     <option value="in_review" {% if current_status == 'in_review' %}selected{% endif %}>In Review</option>
                     <option value="pending_documents" {% if current_status == 'pending_documents' %}selected{% endif %}>Pending Documents</option>
@@ -134,44 +278,57 @@
                     <option value="draft" {% if current_status == 'draft' %}selected{% endif %}>Draft</option>
                     {% endif %}
                 </select>
+                <i class="fas fa-chevron-down absolute right-5 top-14 text-gray-400 pointer-events-none"></i>
             </div>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">City</label>
-                <input type="text" name="city" value="{{ current_city }}" placeholder="Filter by city..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            <div class="relative">
+                <label class="block text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                    <i class="fas fa-map-marker-alt text-indigo-600 mr-2"></i>
+                    City
+                </label>
+                <input type="text" name="city" value="{{ current_city }}" placeholder="e.g., Lagos, Abuja..." class="w-full px-5 py-3.5 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-400 transition-all duration-200 hover:border-gray-300">
             </div>
             <div class="flex items-end">
-                <button type="submit" class="w-full px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium">
-                    <i class="fas fa-filter mr-2"></i>Apply Filters
+                <button type="submit" class="w-full px-6 py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 font-bold shadow-lg hover:shadow-2xl transform hover:scale-105 flex items-center justify-center">
+                    <i class="fas fa-search mr-3"></i>
+                    <span>Apply Filters</span>
                 </button>
             </div>
         </form>
     </div>
 
     <!-- Listings Table -->
-    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-        <div class="px-6 py-5 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-purple-50">
-            <h2 class="text-xl font-semibold text-gray-900">
-                <i class="fas fa-list text-indigo-600 mr-2"></i>Pending Listings
-            </h2>
+    <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+        <div class="px-8 py-6 border-b border-gray-100 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mr-4">
+                        <i class="fas fa-list text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold text-white">{% if view_all %}All Listings{% else %}Pending Listings{% endif %}</h2>
+                        <p class="text-indigo-100 text-sm mt-0.5">{{ listings|length }} listing{{ listings|length|pluralize }}</p>
+                    </div>
+                </div>
+            </div>
         </div>
 
         {% if listings %}
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Property</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Owner</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Submitted</th>
-                        <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+            <table class="min-w-full">
+                <thead>
+                    <tr class="bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
+                        <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Property</th>
+                        <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Owner</th>
+                        <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Location</th>
+                        <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Price</th>
+                        <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Status</th>
+                        <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Submitted</th>
+                        <th scope="col" class="px-6 py-4 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody class="bg-white">
                     {% for listing in listings %}
-                    <tr class="hover:bg-gray-50 transition-colors">
+                    <tr class="listing-row border-b border-gray-100 last:border-0">
                         <td class="px-6 py-4">
                             <div class="flex items-center">
                                 {% if listing.photos.all.0 %}
@@ -208,16 +365,19 @@
                             <div class="text-xs text-gray-500">{{ listing.get_listing_type_display }}</div>
                         </td>
                         <td class="px-6 py-4">
-                            <span class="px-3 py-1 text-xs font-semibold rounded-full {% if listing.status == 'in_review' %}bg-blue-100 text-blue-800{% elif listing.status == 'pending_documents' %}bg-yellow-100 text-yellow-800{% else %}bg-purple-100 text-purple-800{% endif %}">
+                            <span class="inline-flex items-center px-4 py-2 text-xs font-bold rounded-xl shadow-sm {% if listing.status == 'verified' %}bg-gradient-to-r from-green-500 to-green-600 text-white{% elif listing.status == 'rejected' %}bg-gradient-to-r from-red-500 to-red-600 text-white{% elif listing.status == 'in_review' %}bg-gradient-to-r from-blue-500 to-blue-600 text-white{% elif listing.status == 'pending_documents' or listing.status == 'pending_identity' %}bg-gradient-to-r from-yellow-500 to-yellow-600 text-white{% else %}bg-gradient-to-r from-gray-500 to-gray-600 text-white{% endif %}">
+                                <i class="fas {% if listing.status == 'verified' %}fa-check-circle{% elif listing.status == 'rejected' %}fa-times-circle{% elif listing.status == 'in_review' %}fa-search{% else %}fa-clock{% endif %} mr-2"></i>
                                 {{ listing.get_status_display }}
                             </span>
                         </td>
-                        <td class="px-6 py-4 text-sm text-gray-500">
-                            {{ listing.created_at|date:"M d, Y" }}
+                        <td class="px-6 py-4">
+                            <div class="text-sm font-medium text-gray-900">{{ listing.created_at|date:"M d, Y" }}</div>
+                            <div class="text-xs text-gray-500">{{ listing.created_at|date:"g:i A" }}</div>
                         </td>
-                        <td class="px-6 py-4 text-right text-sm font-medium">
-                            <a href="{% url 'listings:review_detail' listing.pk %}" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
-                                <i class="fas fa-eye mr-2"></i>Review
+                        <td class="px-6 py-4 text-right">
+                            <a href="{% url 'listings:review_detail' listing.pk %}" class="group inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105">
+                                <i class="fas fa-eye mr-2 group-hover:scale-110 transition-transform"></i>
+                                <span>Review</span>
                             </a>
                         </td>
                     </tr>
@@ -228,21 +388,55 @@
 
         <!-- Pagination -->
         {% if is_paginated %}
-        <div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
+        <div class="px-8 py-6 border-t border-gray-100 bg-gradient-to-r from-gray-50 via-white to-gray-50">
             <div class="flex items-center justify-between">
-                <div class="text-sm text-gray-700">
-                    Showing page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-layer-group text-white"></i>
+                    </div>
+                    <div>
+                        <div class="text-sm font-semibold text-gray-900">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</div>
+                        <div class="text-xs text-gray-500">{{ page_obj.paginator.count }} total result{{ page_obj.paginator.count|pluralize }}</div>
+                    </div>
                 </div>
-                <div class="flex space-x-2">
+                <div class="flex items-center space-x-3">
                     {% if page_obj.has_previous %}
-                    <a href="?page={{ page_obj.previous_page_number }}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_city %}&city={{ current_city }}{% endif %}{% if current_search %}&search={{ current_search }}{% endif %}" class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                        <i class="fas fa-chevron-left"></i> Previous
+                    <a href="?page={{ page_obj.previous_page_number }}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_city %}&city={{ current_city }}{% endif %}{% if current_search %}&search={{ current_search }}{% endif %}{% if view_all %}&view=all{% endif %}" class="group px-5 py-2.5 bg-white border-2 border-gray-200 text-gray-700 rounded-xl hover:border-indigo-300 hover:bg-indigo-50 transition-all duration-300 font-semibold shadow-md hover:shadow-lg transform hover:scale-105 flex items-center">
+                        <i class="fas fa-chevron-left mr-2 group-hover:-translate-x-1 transition-transform"></i>
+                        <span>Previous</span>
                     </a>
+                    {% else %}
+                    <div class="px-5 py-2.5 bg-gray-100 border-2 border-gray-200 text-gray-400 rounded-xl font-semibold flex items-center cursor-not-allowed opacity-50">
+                        <i class="fas fa-chevron-left mr-2"></i>
+                        <span>Previous</span>
+                    </div>
                     {% endif %}
+
+                    <!-- Page numbers -->
+                    <div class="flex items-center space-x-2">
+                        {% for i in page_obj.paginator.page_range %}
+                            {% if page_obj.number == i %}
+                            <div class="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 text-white rounded-lg flex items-center justify-center font-bold shadow-lg">
+                                {{ i }}
+                            </div>
+                            {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                            <a href="?page={{ i }}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_city %}&city={{ current_city }}{% endif %}{% if current_search %}&search={{ current_search }}{% endif %}{% if view_all %}&view=all{% endif %}" class="w-10 h-10 bg-white border-2 border-gray-200 text-gray-700 rounded-lg flex items-center justify-center font-semibold hover:border-indigo-300 hover:bg-indigo-50 transition-all duration-200 transform hover:scale-110">
+                                {{ i }}
+                            </a>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+
                     {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_city %}&city={{ current_city }}{% endif %}{% if current_search %}&search={{ current_search }}{% endif %}" class="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                        Next <i class="fas fa-chevron-right"></i>
+                    <a href="?page={{ page_obj.next_page_number }}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_city %}&city={{ current_city }}{% endif %}{% if current_search %}&search={{ current_search }}{% endif %}{% if view_all %}&view=all{% endif %}" class="group px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center">
+                        <span>Next</span>
+                        <i class="fas fa-chevron-right ml-2 group-hover:translate-x-1 transition-transform"></i>
                     </a>
+                    {% else %}
+                    <div class="px-5 py-2.5 bg-gray-100 border-2 border-gray-200 text-gray-400 rounded-xl font-semibold flex items-center cursor-not-allowed opacity-50">
+                        <span>Next</span>
+                        <i class="fas fa-chevron-right ml-2"></i>
+                    </div>
                     {% endif %}
                 </div>
             </div>
@@ -250,12 +444,59 @@
         {% endif %}
 
         {% else %}
-        <div class="p-12 text-center">
-            <div class="mb-4">
-                <i class="fas fa-clipboard-check text-gray-300 text-6xl"></i>
+        <div class="relative p-20 text-center overflow-hidden">
+            <!-- Decorative Elements -->
+            <div class="absolute inset-0 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 opacity-50"></div>
+            <div class="absolute top-0 left-1/4 w-64 h-64 bg-gradient-to-br from-blue-200/30 to-indigo-200/30 rounded-full blur-3xl"></div>
+            <div class="absolute bottom-0 right-1/4 w-64 h-64 bg-gradient-to-br from-purple-200/30 to-pink-200/30 rounded-full blur-3xl"></div>
+
+            <div class="relative">
+                <!-- Icon -->
+                <div class="mb-8 inline-block">
+                    <div class="relative">
+                        <div class="w-32 h-32 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full flex items-center justify-center">
+                            <div class="w-24 h-24 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center shadow-xl">
+                                <i class="fas fa-clipboard-check text-white text-5xl"></i>
+                            </div>
+                        </div>
+                        <div class="absolute -top-2 -right-2 w-12 h-12 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
+                            <i class="fas fa-check text-white text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Message -->
+                <h3 class="text-3xl font-bold bg-gradient-to-r from-gray-900 via-indigo-900 to-purple-900 bg-clip-text text-transparent mb-3">
+                    {% if view_all %}No listings found{% else %}All Caught Up!{% endif %}
+                </h3>
+                <p class="text-lg text-gray-600 mb-8 max-w-md mx-auto">
+                    {% if view_all %}
+                        {% if current_search or current_status or current_city %}
+                        No listings match your current filters. Try adjusting your search criteria.
+                        {% else %}
+                        No listings have been created yet. Check back later.
+                        {% endif %}
+                    {% else %}
+                    Great work! There are no pending listings at the moment. All submissions have been reviewed.
+                    {% endif %}
+                </p>
+
+                <!-- Action Buttons -->
+                <div class="flex items-center justify-center space-x-4">
+                    {% if current_search or current_status or current_city %}
+                    <a href="{% url 'listings:review_queue' %}{% if view_all %}?view=all{% endif %}" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105">
+                        <i class="fas fa-times mr-2"></i>
+                        <span>Clear Filters</span>
+                    </a>
+                    {% endif %}
+                    {% if not view_all %}
+                    <a href="?view=all" class="inline-flex items-center px-6 py-3 bg-white border-2 border-indigo-200 text-indigo-700 rounded-xl hover:border-indigo-300 hover:bg-indigo-50 transition-all duration-300 font-semibold shadow-md hover:shadow-lg transform hover:scale-105">
+                        <i class="fas fa-list mr-2"></i>
+                        <span>View All Listings</span>
+                    </a>
+                    {% endif %}
+                </div>
             </div>
-            <h3 class="text-lg font-medium text-gray-900 mb-2">No listings to review</h3>
-            <p class="text-gray-500">All caught up! There are no pending listings at the moment.</p>
         </div>
         {% endif %}
     </div>

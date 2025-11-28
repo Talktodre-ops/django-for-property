@@ -3,191 +3,405 @@
 {% block title %}Profile - Heimly{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto">
-    <div class="bg-white rounded-xl shadow-lg p-8">
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-900 mb-2">
-                <i class="fas fa-user-circle text-indigo-600 mr-3"></i>Update Profile
-            </h1>
-            <p class="text-gray-600">Complete your profile information and identity verification</p>
-        </div>
-        
-        <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-            <div class="space-y-8">
-                <!-- Contact Information & Verification -->
-                <div class="border-b border-gray-200 pb-6">
-                    <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <i class="fas fa-phone text-indigo-600 mr-2"></i>Contact Information
-                    </h2>
+<style>
+    .profile-card {
+        background: white;
+        border-radius: 12px;
+        padding: 28px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
 
-                    <!-- Email Verification Status -->
-                    <div class="mb-6 p-4 {% if owner_profile.email_verified_at %}bg-green-50 border-green-200{% else %}bg-yellow-50 border-yellow-200{% endif %} border rounded-lg">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-3">
-                                {% if owner_profile.email_verified_at %}
-                                <i class="fas fa-check-circle text-green-600 text-xl"></i>
-                                <div>
-                                    <p class="font-medium text-green-900">Email Verified</p>
-                                    <p class="text-sm text-green-700">{{ user.email }}</p>
-                                    <p class="text-xs text-green-600 mt-1">Verified on {{ owner_profile.email_verified_at|date:"M d, Y" }}</p>
-                                </div>
-                                {% else %}
-                                <i class="fas fa-exclamation-triangle text-yellow-600 text-xl"></i>
-                                <div>
-                                    <p class="font-medium text-yellow-900">Email Not Verified</p>
-                                    <p class="text-sm text-yellow-700">{{ user.email }}</p>
-                                    <p class="text-xs text-yellow-600 mt-1">Verify your email to submit listings</p>
-                                </div>
-                                {% endif %}
-                            </div>
-                            {% if not owner_profile.email_verified_at %}
-                            <a href="{% url 'listings:request_email_verification' %}" class="inline-flex items-center px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 font-medium text-sm transition-colors">
-                                <i class="fas fa-envelope mr-2"></i>Verify Email
-                            </a>
+    .verification-card {
+        background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-bottom: 16px;
+        border: 1px solid #6ee7b7;
+    }
+
+    .verification-card.pending {
+        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        border: 1px solid #fcd34d;
+    }
+
+    .verification-card.not-verified {
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        border: 1px solid #fca5a5;
+    }
+
+    .verification-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+    }
+
+    .verification-icon.verified {
+        color: #059669;
+    }
+
+    .verification-icon.pending {
+        color: #d97706;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.2s;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .form-label {
+        display: block;
+        font-size: 14px;
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 8px;
+    }
+
+    .radio-group {
+        display: flex;
+        gap: 24px;
+    }
+
+    .radio-option {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .radio-option input[type="radio"] {
+        width: 18px;
+        height: 18px;
+        accent-color: #6366f1;
+    }
+
+    .radio-option label {
+        font-size: 14px;
+        color: #374151;
+        margin: 0;
+    }
+
+    .file-input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .file-name {
+        flex: 1;
+        padding: 10px 14px;
+        background: #f9fafb;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 14px;
+        color: #6b7280;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .clear-file-btn {
+        color: #ef4444;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+        padding: 4px 8px;
+        border-radius: 4px;
+        transition: all 0.2s;
+    }
+
+    .clear-file-btn:hover {
+        background: #fee2e2;
+    }
+
+    input[type="file"] {
+        display: none;
+    }
+
+    .file-label {
+        padding: 10px 20px;
+        background: white;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        color: #374151;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .file-label:hover {
+        background: #f9fafb;
+        border-color: #6366f1;
+    }
+
+    .view-doc-btn {
+        padding: 8px 16px;
+        background: white;
+        color: #059669;
+        border: 1px solid #059669;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s;
+        display: inline-block;
+    }
+
+    .view-doc-btn:hover {
+        background: #059669;
+        color: white;
+    }
+
+    .save-btn {
+        padding: 12px 32px;
+        background: #6366f1;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        width: 100%;
+    }
+
+    .save-btn:hover {
+        background: #4f46e5;
+    }
+
+    select.form-input {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+        background-position: right 10px center;
+        background-repeat: no-repeat;
+        background-size: 20px;
+        padding-right: 40px;
+    }
+</style>
+
+<div style="max-width: 1400px; margin: 0 auto; padding: 0 20px;">
+    <!-- Page Header -->
+    <div style="margin-bottom: 32px;">
+        <h1 style="font-size: 28px; font-weight: 700; color: #111827; margin-bottom: 8px;">Update Profile</h1>
+        <p style="font-size: 15px; color: #6b7280;">Complete your profile information and identity verification.</p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- Two Column Layout -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
+            <!-- Left Column: Contact Information -->
+            <div class="profile-card">
+                <h2 style="font-size: 18px; font-weight: 600; color: #111827; margin-bottom: 20px;">Contact Information</h2>
+
+                <!-- Email Verification Card -->
+                <div class="verification-card">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div class="verification-icon verified">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: #065f46; font-size: 14px; margin-bottom: 2px;">Email Verified</div>
+                            <div style="font-size: 13px; color: #047857;">{{ user.email }}</div>
+                            {% if owner_profile.email_verified_at %}
+                            <div style="font-size: 12px; color: #059669; margin-top: 2px;">Verified on {{ owner_profile.email_verified_at|date:"M d, Y" }}</div>
                             {% endif %}
                         </div>
-                    </div>
-
-                    <!-- Phone Verification Status -->
-                    <div class="mb-6 p-4 {% if owner_profile.phone_verified_at %}bg-green-50 border-green-200{% else %}bg-gray-50 border-gray-200{% endif %} border rounded-lg">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-3">
-                                {% if owner_profile.phone_verified_at %}
-                                <i class="fas fa-check-circle text-green-600 text-xl"></i>
-                                <div>
-                                    <p class="font-medium text-green-900">Phone Verified</p>
-                                    <p class="text-sm text-green-700">{{ owner_profile.phone_number }}</p>
-                                    <p class="text-xs text-green-600 mt-1">Verified on {{ owner_profile.phone_verified_at|date:"M d, Y" }}</p>
-                                </div>
-                                {% else %}
-                                <i class="fas fa-clock text-gray-600 text-xl"></i>
-                                <div>
-                                    <p class="font-medium text-gray-900">Phone Verification</p>
-                                    <p class="text-sm text-gray-700">{% if owner_profile.phone_number %}{{ owner_profile.phone_number }}{% else %}No phone number provided{% endif %}</p>
-                                    <p class="text-xs text-gray-600 mt-1">Admin will verify manually</p>
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {% for field in form %}
-                        {% if field.name == 'phone_number' or field.name == 'whatsapp_number' or field.name == 'preferred_contact' %}
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">{{ field.label }}</label>
-                            {{ field }}
-                            {% if field.errors %}
-                            <p class="text-red-600 text-sm mt-1">{{ field.errors }}</p>
-                            {% endif %}
-                            {% if field.help_text %}
-                            <p class="text-gray-500 text-xs mt-1">{{ field.help_text }}</p>
-                            {% endif %}
-                        </div>
-                        {% endif %}
-                        {% endfor %}
                     </div>
                 </div>
 
-                <!-- Identity Verification -->
-                <div>
-                    <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <i class="fas fa-id-card text-indigo-600 mr-2"></i>Identity Verification
-                    </h2>
-                    
-                    <!-- Current Upload Status -->
-                    {% if owner_profile.id_document %}
-                    <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-3">
-                                <i class="fas fa-check-circle text-green-600 text-xl"></i>
-                                <div>
-                                    <p class="font-medium text-green-900">ID Document Uploaded</p>
-                                    <p class="text-sm text-green-700">File: {{ owner_profile.id_document.name|slice:"10:" }}</p>
-                                    <p class="text-xs text-green-600 mt-1">Uploaded on {{ owner_profile.updated_at|date:"M d, Y" }}</p>
-                                </div>
+                <!-- Phone Verification Card -->
+                <div class="verification-card {% if owner_profile.phone_verified_at %}{% else %}pending{% endif %}">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div class="verification-icon {% if owner_profile.phone_verified_at %}verified{% else %}pending{% endif %}">
+                            <i class="fas {% if owner_profile.phone_verified_at %}fa-check-circle{% else %}fa-clock{% endif %}"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; {% if owner_profile.phone_verified_at %}color: #065f46;{% else %}color: #92400e;{% endif %} font-size: 14px; margin-bottom: 2px;">
+                                Phone {% if owner_profile.phone_verified_at %}Verified{% else %}Pending{% endif %}
                             </div>
-                            <a href="{{ owner_profile.id_document.url }}" target="_blank" class="text-green-600 hover:text-green-700 font-medium">
-                                <i class="fas fa-external-link-alt mr-1"></i>View Document
-                            </a>
+                            <div style="font-size: 13px; {% if owner_profile.phone_verified_at %}color: #047857;{% else %}color: #b45309;{% endif %}">
+                                {% if owner_profile.phone_number %}{{ owner_profile.phone_number }}{% else %}Not provided{% endif %}
+                            </div>
+                            {% if owner_profile.phone_verified_at %}
+                            <div style="font-size: 12px; color: #059669; margin-top: 2px;">Verified on {{ owner_profile.phone_verified_at|date:"M d, Y" }}</div>
+                            {% endif %}
                         </div>
                     </div>
-                    {% else %}
-                    <div class="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                        <div class="flex items-center space-x-3">
-                            <i class="fas fa-exclamation-triangle text-yellow-600"></i>
-                            <p class="text-yellow-900">No ID document uploaded yet. Please upload your government ID below.</p>
-                        </div>
-                    </div>
+                </div>
+
+                <!-- Phone Number Field -->
+                <div style="margin-bottom: 20px;">
+                    <label class="form-label">Phone number</label>
+                    <input type="text" name="phone_number" value="{{ form.phone_number.value|default:'' }}" class="form-input" placeholder="Enter phone number">
+                    {% if form.phone_number.errors %}
+                    <p style="color: #ef4444; font-size: 13px; margin-top: 4px;">{{ form.phone_number.errors.0 }}</p>
                     {% endif %}
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {% for field in form %}
-                        {% if field.name != 'phone_number' and field.name != 'whatsapp_number' and field.name != 'preferred_contact' %}
-                        <div {% if field.name == 'id_document' %}class="md:col-span-2"{% endif %}>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                {{ field.label }}
-                                {% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
-                            </label>
-                            {% if field.name == 'id_document' %}
-                            <div class="space-y-2">
-                                {{ field }}
-                                {% if owner_profile.id_document %}
-                                <p class="text-sm text-gray-600">
-                                    <i class="fas fa-info-circle mr-1"></i>
-                                    Selecting a new file will replace the existing document.
-                                </p>
-                                {% endif %}
-                            </div>
-                            {% else %}
-                            {{ field }}
-                            {% endif %}
-                            {% if field.errors %}
-                            <p class="text-red-600 text-sm mt-1">{{ field.errors }}</p>
-                            {% endif %}
-                            {% if field.help_text %}
-                            <p class="text-gray-500 text-xs mt-1">{{ field.help_text }}</p>
-                            {% endif %}
+                </div>
+
+                <!-- WhatsApp Number Field -->
+                <div style="margin-bottom: 20px;">
+                    <label class="form-label">Whatsapp number</label>
+                    <input type="text" name="whatsapp_number" value="{{ form.whatsapp_number.value|default:'' }}" class="form-input" placeholder="Enter WhatsApp number">
+                    {% if form.whatsapp_number.errors %}
+                    <p style="color: #ef4444; font-size: 13px; margin-top: 4px;">{{ form.whatsapp_number.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Preferred Contact Field -->
+                <div>
+                    <label class="form-label">Preferred contact</label>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="contact_email" name="preferred_contact" value="email" {% if form.preferred_contact.value == 'email' %}checked{% endif %}>
+                            <label for="contact_email">Email</label>
                         </div>
-                        {% endif %}
-                        {% endfor %}
-                    </div>
-                    
-                    <!-- Verification Status Info -->
-                    <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                        <div class="flex items-start space-x-3">
-                            <i class="fas fa-info-circle text-blue-600 mt-0.5"></i>
-                            <div>
-                                <p class="font-medium text-blue-900 mb-1">Current Verification Status</p>
-                                <p class="text-sm text-blue-800">
-                                    Status: <span class="font-semibold">{{ owner_profile.get_identity_status_display }}</span>
-                                    {% if owner_profile.identity_status == 'pending_review' %}
-                                    <br>Your profile is being reviewed. We'll notify you once it's approved.
-                                    {% elif owner_profile.identity_status == 'approved' %}
-                                    <br>Your identity has been verified! You can now submit listings for review.
-                                    {% elif owner_profile.identity_status == 'rejected' %}
-                                    <br>{% if owner_profile.identity_notes %}{{ owner_profile.identity_notes }}{% else %}Please review and resubmit your documents.{% endif %}
-                                    {% else %}
-                                    <br>Complete all ID information above and upload your document to submit for review.
-                                    {% endif %}
-                                </p>
-                            </div>
+                        <div class="radio-option">
+                            <input type="radio" id="contact_phone" name="preferred_contact" value="phone" {% if form.preferred_contact.value == 'phone' %}checked{% endif %}>
+                            <label for="contact_phone">Phone</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="contact_whatsapp" name="preferred_contact" value="whatsapp" {% if form.preferred_contact.value == 'whatsapp' %}checked{% endif %}>
+                            <label for="contact_whatsapp">WhatsApp</label>
                         </div>
                     </div>
+                    {% if form.preferred_contact.errors %}
+                    <p style="color: #ef4444; font-size: 13px; margin-top: 4px;">{{ form.preferred_contact.errors.0 }}</p>
+                    {% endif %}
                 </div>
             </div>
-            
-            <div class="mt-8 flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
-                <a href="{% url 'listings:dashboard' %}" class="px-6 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium">
-                    Cancel
-                </a>
-                <button type="submit" class="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 shadow-md transition-all font-medium">
-                    <i class="fas fa-save mr-2"></i>Save Profile
+
+            <!-- Right Column: Identity Verification -->
+            <div class="profile-card">
+                <h2 style="font-size: 18px; font-weight: 600; color: #111827; margin-bottom: 20px;">Identity Verification</h2>
+
+                <!-- ID Document Upload Status -->
+                {% if owner_profile.id_document %}
+                <div class="verification-card">
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div class="verification-icon verified">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; color: #065f46; font-size: 14px; margin-bottom: 2px;">ID Document Uploaded</div>
+                                <div style="font-size: 13px; color: #047857;">{{ owner_profile.id_document.name|slice:"-20:" }}</div>
+                                <div style="font-size: 12px; color: #059669; margin-top: 2px;">Uploaded on {{ owner_profile.updated_at|date:"M d, Y" }}</div>
+                            </div>
+                        </div>
+                        <a href="{{ owner_profile.id_document.url }}" target="_blank" class="view-doc-btn">View Document</a>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- ID Type Field -->
+                <div style="margin-bottom: 20px;">
+                    <label class="form-label">Id type</label>
+                    <select name="id_type" class="form-input">
+                        <option value="">---------</option>
+                        <option value="nin" {% if form.id_type.value == 'nin' %}selected{% endif %}>NIN (National Identification Number)</option>
+                        <option value="passport" {% if form.id_type.value == 'passport' %}selected{% endif %}>International Passport</option>
+                        <option value="driver_license" {% if form.id_type.value == 'driver_license' %}selected{% endif %}>Driver's License</option>
+                    </select>
+                    {% if form.id_type.errors %}
+                    <p style="color: #ef4444; font-size: 13px; margin-top: 4px;">{{ form.id_type.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- ID Number Field -->
+                <div style="margin-bottom: 20px;">
+                    <label class="form-label">Id number</label>
+                    <input type="text" name="id_number" value="{{ form.id_number.value|default:'' }}" class="form-input" placeholder="Enter ID number">
+                    {% if form.id_number.errors %}
+                    <p style="color: #ef4444; font-size: 13px; margin-top: 4px;">{{ form.id_number.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- ID Document Upload Field -->
+                <div style="margin-bottom: 20px;">
+                    <label class="form-label">Id document</label>
+                    <div class="file-input-wrapper">
+                        {% if owner_profile.id_document %}
+                        <div class="file-name" id="file-display">
+                            <i class="fas fa-file-pdf"></i>
+                            <span>{{ owner_profile.id_document.name|slice:"-30:" }}</span>
+                        </div>
+                        <a href="javascript:void(0)" class="clear-file-btn" onclick="document.getElementById('id_id_document').value=''; document.getElementById('file-display').innerHTML='<i class=\'fas fa-upload\'></i><span>No file chosen</span>';">Clear</a>
+                        {% else %}
+                        <div class="file-name" id="file-display">
+                            <i class="fas fa-upload"></i>
+                            <span>No file chosen</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <input type="file" name="id_document" id="id_id_document" accept=".pdf,.jpg,.jpeg,.png" onchange="updateFileName(this)">
+                    <label for="id_id_document" class="file-label" style="margin-top: 12px;">
+                        <i class="fas fa-paperclip"></i>
+                        Choose File
+                    </label>
+                    {% if form.id_document.errors %}
+                    <p style="color: #ef4444; font-size: 13px; margin-top: 4px;">{{ form.id_document.errors.0 }}</p>
+                    {% endif %}
+                    <p style="font-size: 12px; color: #6b7280; margin-top: 6px;">Accepted formats: PDF, JPG, PNG (Max 10MB)</p>
+                </div>
+
+                <!-- ID Expiry Date Field -->
+                <div style="margin-bottom: 20px;">
+                    <label class="form-label">ID Expiry Date (Optional)</label>
+                    <input type="date" name="id_expiry_date" value="{{ form.id_expiry_date.value|default:'' }}" class="form-input">
+                    {% if form.id_expiry_date.errors %}
+                    <p style="color: #ef4444; font-size: 13px; margin-top: 4px;">{{ form.id_expiry_date.errors.0 }}</p>
+                    {% endif %}
+                </div>
+
+                <!-- Save Button -->
+                <button type="submit" class="save-btn">
+                    <i class="fas fa-save" style="margin-right: 8px;"></i>Save Changes
                 </button>
             </div>
-        </form>
-    </div>
-</div>
-{% endblock %}
+        </div>
 
+        <!-- Form Errors -->
+        {% if form.non_field_errors %}
+        <div style="background: #fee2e2; border: 1px solid #fca5a5; border-radius: 8px; padding: 12px; margin-top: 20px;">
+            <p style="color: #991b1b; font-size: 14px;">{{ form.non_field_errors.0 }}</p>
+        </div>
+        {% endif %}
+    </form>
+</div>
+
+<script>
+function updateFileName(input) {
+    const fileDisplay = document.getElementById('file-display');
+    if (input.files && input.files[0]) {
+        const fileName = input.files[0].name;
+        const fileExt = fileName.split('.').pop().toLowerCase();
+        let icon = 'fa-file';
+        if (fileExt === 'pdf') icon = 'fa-file-pdf';
+        else if (['jpg', 'jpeg', 'png'].includes(fileExt)) icon = 'fa-file-image';
+
+        fileDisplay.innerHTML = `<i class="fas ${icon}"></i><span>${fileName}</span>`;
+    }
+}
+</script>
+{% endblock %}

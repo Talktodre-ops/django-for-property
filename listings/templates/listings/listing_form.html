@@ -3,139 +3,667 @@
 {% block title %}{% if object %}Edit{% else %}Create{% endif %} Listing - Heimly{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto">
-    <div class="bg-white rounded-xl shadow-lg p-8">
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-900 mb-2">
-                <i class="fas fa-{% if object %}edit{% else %}plus-circle{% endif %} text-indigo-600 mr-3"></i>
-                {% if object %}Edit{% else %}Create New{% endif %} Listing
-            </h1>
-            <p class="text-gray-600">Fill in the details to {% if object %}update{% else %}create{% endif %} your property listing</p>
+<style>
+    .step-container {
+        max-width: 700px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    .step-indicator {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 40px;
+        position: relative;
+    }
+
+    .step {
+        display: flex;
+        align-items: center;
+        position: relative;
+        z-index: 2;
+    }
+
+    .step-button {
+        width: 120px;
+        padding: 12px 20px;
+        background: white;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #9ca3af;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-align: center;
+    }
+
+    .step-button.active {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        color: white;
+        border-color: #6366f1;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    .step-button.completed {
+        background: white;
+        border-color: #6366f1;
+        color: #6366f1;
+    }
+
+    .step-divider {
+        width: 60px;
+        height: 2px;
+        background: #e5e7eb;
+        margin: 0 -10px;
+        z-index: 1;
+    }
+
+    .form-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+        margin-bottom: 24px;
+    }
+
+    .form-header {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        padding: 32px;
+        color: white;
+    }
+
+    .form-header h2 {
+        font-size: 24px;
+        font-weight: 700;
+        margin: 0 0 8px 0;
+    }
+
+    .form-header p {
+        font-size: 15px;
+        opacity: 0.95;
+        margin: 0;
+    }
+
+    .form-body {
+        padding: 32px;
+    }
+
+    .form-field {
+        margin-bottom: 24px;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    .required {
+        color: #ef4444;
+        margin-left: 4px;
+    }
+
+    .form-input,
+    .form-select,
+    .form-textarea {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 15px;
+        color: #111827;
+        transition: all 0.2s;
+        font-family: inherit;
+    }
+
+    .form-input:focus,
+    .form-select:focus,
+    .form-textarea:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .form-input::placeholder {
+        color: #9ca3af;
+    }
+
+    .form-textarea {
+        resize: vertical;
+        min-height: 140px;
+    }
+
+    .form-select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+        background-position: right 12px center;
+        background-repeat: no-repeat;
+        background-size: 20px;
+        padding-right: 40px;
+        cursor: pointer;
+    }
+
+    .field-grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .field-grid-3 {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 20px;
+    }
+
+    .helper-text {
+        font-size: 13px;
+        color: #6b7280;
+        margin-top: 6px;
+    }
+
+    .error-message {
+        color: #ef4444;
+        font-size: 13px;
+        margin-top: 6px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        margin-top: 32px;
+    }
+
+    .btn {
+        padding: 14px 32px;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: none;
+        text-decoration: none;
+    }
+
+    .btn-secondary {
+        background: white;
+        border: 2px solid #d1d5db;
+        color: #374151;
+    }
+
+    .btn-secondary:hover {
+        background: #f9fafb;
+        border-color: #9ca3af;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        color: white;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+    }
+
+    .checkbox-field {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px;
+        background: #fef3c7;
+        border: 1px solid #fde68a;
+        border-radius: 8px;
+        margin-top: 24px;
+    }
+
+    .checkbox-field input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        accent-color: #6366f1;
+        cursor: pointer;
+    }
+
+    .checkbox-field label {
+        font-size: 15px;
+        font-weight: 500;
+        color: #78350f;
+        margin: 0;
+        cursor: pointer;
+        text-transform: none;
+        letter-spacing: normal;
+    }
+
+    .step-content {
+        display: none;
+    }
+
+    .step-content.active {
+        display: block;
+    }
+
+    @media (max-width: 768px) {
+        .field-grid-2,
+        .field-grid-3 {
+            grid-template-columns: 1fr;
+        }
+
+        .step-indicator {
+            overflow-x: auto;
+            justify-content: flex-start;
+            padding-bottom: 10px;
+        }
+
+        .step-button {
+            min-width: 100px;
+            font-size: 13px;
+        }
+
+        .step-divider {
+            width: 40px;
+        }
+    }
+</style>
+
+<div class="step-container">
+    <!-- Step Indicator -->
+    <div class="step-indicator">
+        <div class="step">
+            <div class="step-button active" data-step="1">Basic Info</div>
         </div>
-        
-        <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-            <div class="space-y-8">
-                <!-- Basic Information -->
-                <div class="border-b border-gray-200 pb-6">
-                    <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <i class="fas fa-info-circle text-indigo-600 mr-2"></i>Basic Information
-                    </h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {% for field in form %}
-                        {% if field.name in 'title,property_type,listing_type' %}
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                {{ field.label }} {% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
-                            </label>
-                            {{ field }}
-                            {% if field.errors %}
-                            <p class="text-red-600 text-sm mt-1">{{ field.errors }}</p>
-                            {% endif %}
-                        </div>
-                        {% endif %}
-                        {% endfor %}
-                    </div>
-                    <div class="mt-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            {{ form.description.label }} {% if form.description.field.required %}<span class="text-red-500">*</span>{% endif %}
-                        </label>
-                        {{ form.description }}
-                        {% if form.description.errors %}
-                        <p class="text-red-600 text-sm mt-1">{{ form.description.errors }}</p>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <!-- Location -->
-                <div class="border-b border-gray-200 pb-6">
-                    <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <i class="fas fa-map-marker-alt text-indigo-600 mr-2"></i>Location
-                    </h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {% for field in form %}
-                        {% if field.name in 'address_line,city,state,country,postal_code,latitude,longitude' %}
-                        <div {% if field.name == 'address_line' %}class="md:col-span-2"{% endif %}>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                {{ field.label }} {% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
-                            </label>
-                            {{ field }}
-                            {% if field.errors %}
-                            <p class="text-red-600 text-sm mt-1">{{ field.errors }}</p>
-                            {% endif %}
-                        </div>
-                        {% endif %}
-                        {% endfor %}
-                    </div>
-                </div>
-
-                <!-- Property Details -->
-                <div class="border-b border-gray-200 pb-6">
-                    <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <i class="fas fa-home text-indigo-600 mr-2"></i>Property Details
-                    </h2>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {% for field in form %}
-                        {% if field.name in 'bedrooms,bathrooms,parking_spaces,land_size_sqm,building_size_sqm' %}
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">{{ field.label }}</label>
-                            {{ field }}
-                            {% if field.errors %}
-                            <p class="text-red-600 text-sm mt-1">{{ field.errors }}</p>
-                            {% endif %}
-                        </div>
-                        {% endif %}
-                        {% endfor %}
-                    </div>
-                </div>
-
-                <!-- Pricing -->
-                <div class="pb-6">
-                    <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <i class="fas fa-dollar-sign text-indigo-600 mr-2"></i>Pricing
-                    </h2>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {% for field in form %}
-                        {% if field.name in 'price,currency,service_charge,is_negotiable' %}
-                        <div {% if field.name == 'is_negotiable' %}class="flex items-center space-x-2 pt-8"{% endif %}>
-                            {% if field.name == 'is_negotiable' %}
-                            {{ field }}
-                            <label class="text-sm font-medium text-gray-700">{{ field.label }}</label>
-                            {% else %}
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                {{ field.label }} {% if field.field.required %}<span class="text-red-500">*</span>{% endif %}
-                            </label>
-                            {{ field }}
-                            {% endif %}
-                            {% if field.errors %}
-                            <p class="text-red-600 text-sm mt-1">{{ field.errors }}</p>
-                            {% endif %}
-                        </div>
-                        {% endif %}
-                        {% endfor %}
-                    </div>
-                    {% if form.amenities %}
-                    <div class="mt-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">{{ form.amenities.label }}</label>
-                        {{ form.amenities }}
-                        {% if form.amenities.errors %}
-                        <p class="text-red-600 text-sm mt-1">{{ form.amenities.errors }}</p>
-                        {% endif %}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-            
-            <div class="mt-8 flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
-                <a href="{% url 'listings:dashboard' %}" class="px-6 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium">
-                    Cancel
-                </a>
-                <button type="submit" class="inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 shadow-md transition-all font-medium">
-                    <i class="fas fa-save mr-2"></i>Save Listing
-                </button>
-            </div>
-        </form>
+        <div class="step-divider"></div>
+        <div class="step">
+            <div class="step-button" data-step="2">Location</div>
+        </div>
+        <div class="step-divider"></div>
+        <div class="step">
+            <div class="step-button" data-step="3">Details</div>
+        </div>
+        <div class="step-divider"></div>
+        <div class="step">
+            <div class="step-button" data-step="4">Pricing</div>
+        </div>
     </div>
-</div>
-{% endblock %}
 
+    <form method="post" id="listing-form">
+        {% csrf_token %}
+
+        <!-- Step 1: Basic Info -->
+        <div class="step-content active" data-step="1">
+            <div class="form-card">
+                <div class="form-header">
+                    <h2>Basic Info</h2>
+                    <p>Tell us about your property</p>
+                </div>
+                <div class="form-body">
+                    <!-- Title -->
+                    <div class="form-field">
+                        <label class="form-label">TITLE <span class="required">*</span></label>
+                        <input type="text" name="title" value="{{ form.title.value|default:'' }}" class="form-input" placeholder="E.g., Modern apartment with city views" required>
+                        {% if form.title.errors %}
+                        <div class="error-message"><i class="fas fa-exclamation-circle"></i>{{ form.title.errors.0 }}</div>
+                        {% endif %}
+                        <div class="helper-text">E.g., Modern apartment with city views</div>
+                    </div>
+
+                    <!-- Property Type & Listing Type -->
+                    <div class="field-grid-2">
+                        <div class="form-field">
+                            <label class="form-label">PROPERTY TYPE <span class="required">*</span></label>
+                            <select name="property_type" class="form-select" required>
+                                <option value="">Select type</option>
+                                <option value="apartment" {% if form.property_type.value == 'apartment' %}selected{% endif %}>Apartment</option>
+                                <option value="duplex" {% if form.property_type.value == 'duplex' %}selected{% endif %}>Duplex</option>
+                                <option value="bungalow" {% if form.property_type.value == 'bungalow' %}selected{% endif %}>Bungalow</option>
+                                <option value="terrace" {% if form.property_type.value == 'terrace' %}selected{% endif %}>Terrace</option>
+                                <option value="detached" {% if form.property_type.value == 'detached' %}selected{% endif %}>Detached House</option>
+                                <option value="land" {% if form.property_type.value == 'land' %}selected{% endif %}>Land</option>
+                                <option value="commercial" {% if form.property_type.value == 'commercial' %}selected{% endif %}>Commercial</option>
+                                <option value="other" {% if form.property_type.value == 'other' %}selected{% endif %}>Other</option>
+                            </select>
+                            {% if form.property_type.errors %}
+                            <div class="error-message"><i class="fas fa-exclamation-circle"></i>{{ form.property_type.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-field">
+                            <label class="form-label">LISTING TYPE <span class="required">*</span></label>
+                            <select name="listing_type" class="form-select" required>
+                                <option value="">Select type</option>
+                                <option value="sale" {% if form.listing_type.value == 'sale' %}selected{% endif %}>For Sale</option>
+                                <option value="rent" {% if form.listing_type.value == 'rent' %}selected{% endif %}>For Rent</option>
+                                <option value="shortlet" {% if form.listing_type.value == 'shortlet' %}selected{% endif %}>Shortlet</option>
+                            </select>
+                            {% if form.listing_type.errors %}
+                            <div class="error-message"><i class="fas fa-exclamation-circle"></i>{{ form.listing_type.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="form-field">
+                        <label class="form-label">DESCRIPTION <span class="required">*</span></label>
+                        <textarea name="description" class="form-textarea" placeholder="Describe your property in detail to attract potential buyers/renters" required>{{ form.description.value|default:'' }}</textarea>
+                        {% if form.description.errors %}
+                        <div class="error-message"><i class="fas fa-exclamation-circle"></i>{{ form.description.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-actions">
+                        <a href="{% url 'listings:dashboard' %}" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                        <button type="button" class="btn btn-primary" onclick="nextStep()">
+                            Continue <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Location -->
+        <div class="step-content" data-step="2">
+            <div class="form-card">
+                <div class="form-header">
+                    <h2>Location</h2>
+                    <p>Where is your property located?</p>
+                </div>
+                <div class="form-body">
+                    <!-- Address Line -->
+                    <div class="form-field">
+                        <label class="form-label">ADDRESS <span class="required">*</span></label>
+                        <input type="text" name="address_line" value="{{ form.address_line.value|default:'' }}" class="form-input" placeholder="Full street address" required>
+                        {% if form.address_line.errors %}
+                        <div class="error-message"><i class="fas fa-exclamation-circle"></i>{{ form.address_line.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- City & State -->
+                    <div class="field-grid-2">
+                        <div class="form-field">
+                            <label class="form-label">CITY <span class="required">*</span></label>
+                            <input type="text" name="city" value="{{ form.city.value|default:'' }}" class="form-input" placeholder="City" required>
+                            {% if form.city.errors %}
+                            <div class="error-message"><i class="fas fa-exclamation-circle"></i>{{ form.city.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-field">
+                            <label class="form-label">STATE <span class="required">*</span></label>
+                            <input type="text" name="state" value="{{ form.state.value|default:'' }}" class="form-input" placeholder="State/Province" required>
+                            {% if form.state.errors %}
+                            <div class="error-message"><i class="fas fa-exclamation-circle"></i>{{ form.state.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Country & Postal Code -->
+                    <div class="field-grid-2">
+                        <div class="form-field">
+                            <label class="form-label">COUNTRY <span class="required">*</span></label>
+                            <input type="text" name="country" value="{{ form.country.value|default:'Nigeria' }}" class="form-input" placeholder="Country" required>
+                            {% if form.country.errors %}
+                            <div class="error-message"><i class="fas fa-exclamation-circle"></i>{{ form.country.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-field">
+                            <label class="form-label">POSTAL CODE</label>
+                            <input type="text" name="postal_code" value="{{ form.postal_code.value|default:'' }}" class="form-input" placeholder="Postal code">
+                            {% if form.postal_code.errors %}
+                            <div class="error-message"><i class="fas fa-exclamation-circle"></i>{{ form.postal_code.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Coordinates (Optional) -->
+                    <div class="field-grid-2">
+                        <div class="form-field">
+                            <label class="form-label">LATITUDE</label>
+                            <input type="number" step="0.000001" name="latitude" value="{{ form.latitude.value|default:'' }}" class="form-input" placeholder="e.g., 6.524379">
+                            {% if form.latitude.errors %}
+                            <div class="error-message"><i class="fas fa-exclamation-circle"></i>{{ form.latitude.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-field">
+                            <label class="form-label">LONGITUDE</label>
+                            <input type="number" step="0.000001" name="longitude" value="{{ form.longitude.value|default:'' }}" class="form-input" placeholder="e.g., 3.379206">
+                            {% if form.longitude.errors %}
+                            <div class="error-message"><i class="fas fa-exclamation-circle"></i>{{ form.longitude.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="previousStep()">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="nextStep()">
+                            Continue <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Details -->
+        <div class="step-content" data-step="3">
+            <div class="form-card">
+                <div class="form-header">
+                    <h2>Details</h2>
+                    <p>Property specifications and features</p>
+                </div>
+                <div class="form-body">
+                    <!-- Bedrooms, Bathrooms, Parking -->
+                    <div class="field-grid-3">
+                        <div class="form-field">
+                            <label class="form-label">BEDROOMS</label>
+                            <input type="number" name="bedrooms" value="{{ form.bedrooms.value|default:'' }}" class="form-input" placeholder="0" min="0">
+                            {% if form.bedrooms.errors %}
+                            <div class="error-message"><i class="fas fa-exclamation-circle"></i>{{ form.bedrooms.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-field">
+                            <label class="form-label">BATHROOMS</label>
+                            <input type="number" name="bathrooms" value="{{ form.bathrooms.value|default:'' }}" class="form-input" placeholder="0" min="0">
+                            {% if form.bathrooms.errors %}
+                            <div class="error-message"><i class="fas fa-exclamation-circle"></i>{{ form.bathrooms.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-field">
+                            <label class="form-label">PARKING SPACES</label>
+                            <input type="number" name="parking_spaces" value="{{ form.parking_spaces.value|default:'0' }}" class="form-input" placeholder="0" min="0">
+                            {% if form.parking_spaces.errors %}
+                            <div class="error-message"><i class="fas fa-exclamation-circle"></i>{{ form.parking_spaces.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Land Size & Building Size -->
+                    <div class="field-grid-2">
+                        <div class="form-field">
+                            <label class="form-label">LAND SIZE (SQM)</label>
+                            <input type="number" step="0.01" name="land_size_sqm" value="{{ form.land_size_sqm.value|default:'' }}" class="form-input" placeholder="Square meters" min="0">
+                            {% if form.land_size_sqm.errors %}
+                            <div class="error-message"><i class="fas fa-exclamation-circle"></i>{{ form.land_size_sqm.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-field">
+                            <label class="form-label">BUILDING SIZE (SQM)</label>
+                            <input type="number" step="0.01" name="building_size_sqm" value="{{ form.building_size_sqm.value|default:'' }}" class="form-input" placeholder="Square meters" min="0">
+                            {% if form.building_size_sqm.errors %}
+                            <div class="error-message"><i class="fas fa-exclamation-circle"></i>{{ form.building_size_sqm.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="previousStep()">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="nextStep()">
+                            Continue <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: Pricing -->
+        <div class="step-content" data-step="4">
+            <div class="form-card">
+                <div class="form-header">
+                    <h2>Pricing</h2>
+                    <p>Set your property price</p>
+                </div>
+                <div class="form-body">
+                    <!-- Price & Currency -->
+                    <div class="field-grid-2">
+                        <div class="form-field">
+                            <label class="form-label">PRICE <span class="required">*</span></label>
+                            <input type="number" step="0.01" name="price" value="{{ form.price.value|default:'' }}" class="form-input" placeholder="Enter price" required min="0">
+                            {% if form.price.errors %}
+                            <div class="error-message"><i class="fas fa-exclamation-circle"></i>{{ form.price.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-field">
+                            <label class="form-label">CURRENCY <span class="required">*</span></label>
+                            <select name="currency" class="form-select" required>
+                                <option value="NGN" {% if form.currency.value == 'NGN' or not form.currency.value %}selected{% endif %}>NGN (Nigerian Naira)</option>
+                                <option value="USD" {% if form.currency.value == 'USD' %}selected{% endif %}>USD (US Dollar)</option>
+                                <option value="GBP" {% if form.currency.value == 'GBP' %}selected{% endif %}>GBP (British Pound)</option>
+                                <option value="EUR" {% if form.currency.value == 'EUR' %}selected{% endif %}>EUR (Euro)</option>
+                            </select>
+                            {% if form.currency.errors %}
+                            <div class="error-message"><i class="fas fa-exclamation-circle"></i>{{ form.currency.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Service Charge -->
+                    <div class="form-field">
+                        <label class="form-label">SERVICE CHARGE (OPTIONAL)</label>
+                        <input type="number" step="0.01" name="service_charge" value="{{ form.service_charge.value|default:'' }}" class="form-input" placeholder="Annual service charge" min="0">
+                        {% if form.service_charge.errors %}
+                        <div class="error-message"><i class="fas fa-exclamation-circle"></i>{{ form.service_charge.errors.0 }}</div>
+                        {% endif %}
+                        <div class="helper-text">Annual maintenance/service charge if applicable</div>
+                    </div>
+
+                    <!-- Is Negotiable -->
+                    <div class="checkbox-field">
+                        <input type="checkbox" name="is_negotiable" id="is_negotiable" {% if form.is_negotiable.value %}checked{% endif %}>
+                        <label for="is_negotiable">
+                            <i class="fas fa-handshake" style="margin-right: 8px;"></i>
+                            Price is negotiable
+                        </label>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="previousStep()">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Listing
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+let currentStep = 1;
+const totalSteps = 4;
+
+function updateStepIndicator() {
+    // Update step buttons
+    document.querySelectorAll('.step-button').forEach(btn => {
+        const step = parseInt(btn.getAttribute('data-step'));
+        btn.classList.remove('active', 'completed');
+
+        if (step === currentStep) {
+            btn.classList.add('active');
+        } else if (step < currentStep) {
+            btn.classList.add('completed');
+        }
+    });
+
+    // Update step content visibility
+    document.querySelectorAll('.step-content').forEach(content => {
+        const step = parseInt(content.getAttribute('data-step'));
+        content.classList.toggle('active', step === currentStep);
+    });
+
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function nextStep() {
+    if (currentStep < totalSteps) {
+        // Validate current step fields
+        const currentStepContent = document.querySelector(`.step-content[data-step="${currentStep}"]`);
+        const requiredFields = currentStepContent.querySelectorAll('[required]');
+        let isValid = true;
+
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                isValid = false;
+                field.style.borderColor = '#ef4444';
+            } else {
+                field.style.borderColor = '#d1d5db';
+            }
+        });
+
+        if (isValid) {
+            currentStep++;
+            updateStepIndicator();
+        } else {
+            alert('Please fill in all required fields before continuing.');
+        }
+    }
+}
+
+function previousStep() {
+    if (currentStep > 1) {
+        currentStep--;
+        updateStepIndicator();
+    }
+}
+
+// Allow clicking on step buttons to navigate
+document.querySelectorAll('.step-button').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const targetStep = parseInt(this.getAttribute('data-step'));
+        if (targetStep <= currentStep || targetStep === currentStep + 1) {
+            currentStep = targetStep;
+            updateStepIndicator();
+        }
+    });
+});
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    updateStepIndicator();
+});
+</script>
+{% endblock %}
